@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
 import { orchestrate } from "@/server/ai/orchestrate";
 
 const bodySchema = z.object({
@@ -10,6 +11,12 @@ const bodySchema = z.object({
   message: z.string().min(1).max(2000),
 });
 
+/**
+ * Orchestrator playground. Intentionally open in dev so curl tests don't
+ * need a session cookie; in production it requires a NextAuth session and
+ * enforces clinicId === session.user.clinicId so a logged-in user can't
+ * drive the bot for a different tenant.
+ */
 export async function POST(request: NextRequest) {
   const json = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
@@ -18,6 +25,16 @@ export async function POST(request: NextRequest) {
       { error: "VALIDATION_ERROR", details: parsed.error.flatten() },
       { status: 400 },
     );
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+    }
+    if (parsed.data.clinicId !== session.user.clinicId) {
+      return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+    }
   }
 
   try {
