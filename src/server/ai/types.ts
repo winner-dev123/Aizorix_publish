@@ -1,6 +1,6 @@
 import type { MessageRole } from "@prisma/client";
 
-export type Action = "BOOK" | "RESCHEDULE" | "CANCEL" | "INFO" | "NONE";
+export type Action = "BOOK" | "RESCHEDULE" | "CANCEL" | "INFO" | "NONE" | "PAUSED";
 
 export type EnvelopeMetadata = {
   appointmentId?: string;

@@ -81,6 +81,19 @@ export async function orchestrate(
     },
   });
 
+  // If staff has paused the bot for this conversation, record the inbound
+  // message but skip the LLM round-trip. The caller (webhook) sees the empty
+  // respuesta and skips the outbound send. Staff will resume by toggling off.
+  if (conversation.botPaused) {
+    return {
+      respuesta: "",
+      accion: "PAUSED",
+      requiresHuman: conversation.requiresHuman,
+      metadata: {},
+      conversationId: conversation.id,
+    };
+  }
+
   const systemPrompt = buildSystemPrompt({
     clinic: { name: clinic.name, timezone: clinic.timezone },
     externalChatId: input.externalChatId,

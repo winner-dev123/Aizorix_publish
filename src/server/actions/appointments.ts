@@ -90,16 +90,42 @@ export async function resolveHandoffAction(handoffId: string): Promise<ActionRes
       assignedUserId: session.user.id ?? null,
     },
   });
-  // Clear requiresHuman on the conversation if no other open handoffs remain.
+  // Clear requiresHuman + resume the bot when no other open handoffs remain.
   const stillOpen = await prisma.humanHandoff.count({
     where: { conversationId: handoff.conversationId, status: { in: ["OPEN", "IN_PROGRESS"] } },
   });
   if (stillOpen === 0) {
     await prisma.conversation.update({
       where: { id: handoff.conversationId },
-      data: { requiresHuman: false },
+      data: { requiresHuman: false, botPaused: false },
     });
   }
+  revalidatePath("/app/conversations");
+  return { ok: true };
+}
+
+/**
+ * Pause or resume the AI bot on a single conversation. While paused, the
+ * orchestrator records inbound messages but skips the LLM call and
+ * outbound send. Staff use this in tandem with the manual composer.
+ */
+export async function setBotPausedAction(
+  conversationId: string,
+  paused: boolean,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: { code: "UNAUTHORIZED", message: "No session" } };
+
+  const conv = await prisma.conversation.findFirst({
+    where: { id: conversationId, clinicId: session.user.clinicId },
+    select: { id: true },
+  });
+  if (!conv) return { ok: false, error: { code: "NOT_FOUND", message: "Conversación no encontrada" } };
+
+  await prisma.conversation.update({
+    where: { id: conv.id },
+    data: { botPaused: paused },
+  });
   revalidatePath("/app/conversations");
   return { ok: true };
 }

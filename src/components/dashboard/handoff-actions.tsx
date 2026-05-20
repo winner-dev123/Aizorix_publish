@@ -1,23 +1,33 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CheckCircle2, Send } from "lucide-react";
+import { CheckCircle2, Pause, Play, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   resolveHandoffAction,
   sendManualReplyAction,
+  setBotPausedAction,
 } from "@/server/actions/appointments";
 
 type Props = {
   conversationId: string;
   openHandoffId: string | null;
+  botPaused: boolean;
 };
 
-export function HandoffActions({ conversationId, openHandoffId }: Props) {
+export function HandoffActions({ conversationId, openHandoffId, botPaused }: Props) {
   const [pending, startTransition] = useTransition();
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState<string | null>(null);
+
+  function doTogglePause() {
+    setError(null);
+    startTransition(async () => {
+      const res = await setBotPausedAction(conversationId, !botPaused);
+      if (!res.ok) setError(res.error.message);
+    });
+  }
 
   function doSend(e: React.FormEvent) {
     e.preventDefault();
@@ -47,6 +57,28 @@ export function HandoffActions({ conversationId, openHandoffId }: Props) {
 
   return (
     <div className="border-t border-[color:var(--color-ink-100)] bg-white p-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
+          {botPaused ? "Bot pausado · respondes tú" : "Bot activo · responde la IA"}
+        </p>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={pending}
+          onClick={doTogglePause}
+        >
+          {botPaused ? (
+            <>
+              <Play className="h-4 w-4" /> Reactivar bot
+            </>
+          ) : (
+            <>
+              <Pause className="h-4 w-4" /> Pausar bot
+            </>
+          )}
+        </Button>
+      </div>
       <form onSubmit={doSend} className="flex items-end gap-2">
         <textarea
           value={text}

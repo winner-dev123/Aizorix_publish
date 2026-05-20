@@ -396,7 +396,9 @@ const escalateTool: Tool<z.infer<typeof escalateInput>> = {
   async handler({ reason }, ctx) {
     await prisma.conversation.update({
       where: { id: ctx.conversationId },
-      data: { requiresHuman: true },
+      // Escalation auto-pauses the bot — staff will resume by marking the
+      // handoff as resolved (which clears both flags).
+      data: { requiresHuman: true, botPaused: true },
     });
     await prisma.humanHandoff.create({
       data: {

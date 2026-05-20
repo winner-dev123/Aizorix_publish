@@ -366,6 +366,10 @@ model Conversation {
   channel        Channel  @default(WHATSAPP)
   externalChatId String? // e.g. WhatsApp phone E.164
   requiresHuman  Boolean  @default(false)
+  // When true, the orchestrator records inbound messages but skips the LLM
+  // call. Staff toggle this from the conversation thread; `escalate_to_human`
+  // also sets it; `resolveHandoffAction` clears it.
+  botPaused      Boolean  @default(false)
   lastMessageAt  DateTime @default(now())
   createdAt      DateTime @default(now())
 

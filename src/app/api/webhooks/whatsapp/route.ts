@@ -69,6 +69,18 @@ export async function POST(request: NextRequest) {
       message: inbound.text,
     });
 
+    // Bot is paused for this conversation — record the inbound message
+    // (already done by orchestrate) and stay silent. Staff will reply
+    // manually through the dashboard composer.
+    if (envelope.accion === "PAUSED" || !envelope.respuesta) {
+      return NextResponse.json({
+        conversationId: envelope.conversationId,
+        delivery: { status: "SKIPPED" },
+        requiresHuman: envelope.requiresHuman,
+        accion: envelope.accion,
+      });
+    }
+
     const provider = getWhatsAppProvider();
     const result = await provider.send({
       fromAddress: clinic.whatsappNumber ?? inbound.toAddress,

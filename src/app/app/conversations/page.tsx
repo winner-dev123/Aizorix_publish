@@ -240,6 +240,7 @@ function Thread({ conv, tz }: { conv: ConversationWithDetails; tz: string }) {
       <HandoffActions
         conversationId={conv.id}
         openHandoffId={openHandoff?.id ?? null}
+        botPaused={conv.botPaused}
       />
 
     </>
