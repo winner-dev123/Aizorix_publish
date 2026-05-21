@@ -27,23 +27,28 @@ interface NavItem {
   badge?: string;
 }
 
-const NAV: NavItem[] = [
-  { href: "/app", label: "Dashboard", icon: LayoutDashboard, group: "Workspace" },
-  { href: "/app/pipeline", label: "Pipeline", icon: KanbanSquare, group: "Workspace" },
-  { href: "/app/clients", label: "Clientes", icon: Users, group: "Workspace" },
-  {
-    href: "/app/conversations",
-    label: "Conversaciones",
-    icon: MessagesSquare,
-    group: "Comunicación",
-    badge: "3",
-  },
-  { href: "/app/agenda", label: "Agenda", icon: Calendar, group: "Comunicación" },
-  { href: "/app/ai", label: "IA Recepcionista", icon: Bot, group: "Comunicación" },
-  { href: "/app/campaigns", label: "Campañas IA", icon: Megaphone, group: "Crecimiento" },
-  { href: "/app/metrics", label: "Métricas", icon: BarChart3, group: "Crecimiento" },
-  { href: "/app/settings", label: "Configuración", icon: Settings, group: "Sistema" },
-];
+function buildNav(needsAttentionCount: number): NavItem[] {
+  return [
+    { href: "/app", label: "Dashboard", icon: LayoutDashboard, group: "Workspace" },
+    { href: "/app/pipeline", label: "Pipeline", icon: KanbanSquare, group: "Workspace" },
+    { href: "/app/clients", label: "Clientes", icon: Users, group: "Workspace" },
+    {
+      href: "/app/conversations",
+      label: "Conversaciones",
+      icon: MessagesSquare,
+      group: "Comunicación",
+      // Only show the badge when there's something needing attention. The
+      // value comes from the server-side count of WhatsApp conversations
+      // flagged requiresHuman=true (passed in via props).
+      badge: needsAttentionCount > 0 ? String(needsAttentionCount) : undefined,
+    },
+    { href: "/app/agenda", label: "Agenda", icon: Calendar, group: "Comunicación" },
+    { href: "/app/ai", label: "IA Recepcionista", icon: Bot, group: "Comunicación" },
+    { href: "/app/campaigns", label: "Campañas IA", icon: Megaphone, group: "Crecimiento" },
+    { href: "/app/metrics", label: "Métricas", icon: BarChart3, group: "Crecimiento" },
+    { href: "/app/settings", label: "Configuración", icon: Settings, group: "Sistema" },
+  ];
+}
 
 const GROUPS: NavItem["group"][] = [
   "Workspace",
@@ -52,8 +57,9 @@ const GROUPS: NavItem["group"][] = [
   "Sistema",
 ];
 
-export function CrmSidebar() {
+export function CrmSidebar({ needsAttentionCount = 0 }: { needsAttentionCount?: number }) {
   const pathname = usePathname();
+  const nav = buildNav(needsAttentionCount);
 
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-[color:var(--color-ink-100)] bg-white/85 backdrop-blur-xl md:flex">
@@ -65,7 +71,7 @@ export function CrmSidebar() {
 
       <nav className="flex-1 overflow-y-auto px-3 pb-3">
         {GROUPS.map((group) => {
-          const items = NAV.filter((n) => n.group === group);
+          const items = nav.filter((n) => n.group === group);
           return (
             <div key={group} className="mt-5 first:mt-2">
               <p className="px-2.5 pb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--color-ink-400)]">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   Bot,
   Calendar,
@@ -12,11 +12,16 @@ import {
   Send,
   Sparkles,
   User,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatEUR } from "@/lib/utils";
+import {
+  clearDemoConversationAction,
+  runDemoTurnAction,
+} from "@/server/actions/ai-demo";
 
 export type DemoTreatment = {
   id: string;
@@ -100,6 +105,9 @@ export function AiDemo({
   const [lead, setLead] = useState<CapturedLead>({});
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const [mode, setMode] = useState<"simulated" | "real">("simulated");
+  const [error, setError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
   const [appointmentCreated, setAppointmentCreated] = useState<{
     time: string;
     treatment: string;
@@ -121,10 +129,16 @@ export function AiDemo({
 
   function handleSend(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     const text = input.trim();
     if (!text) return;
     setMessages((prev) => [...prev, { from: "client", text, at: Date.now() }]);
     setInput("");
+
+    if (mode === "real") {
+      runRealTurn(text);
+      return;
+    }
 
     const newLead = { ...lead };
     const phone = extractPhone(text);
@@ -209,11 +223,49 @@ export function AiDemo({
     );
   }
 
+  function runRealTurn(text: string) {
+    setTyping(true);
+    startTransition(async () => {
+      const res = await runDemoTurnAction({ message: text });
+      setTyping(false);
+      if (res.ok) {
+        const reply = res.data.respuesta || "(el bot no respondió nada)";
+        setMessages((prev) => [...prev, { from: "ai", text: reply, at: Date.now() }]);
+      } else {
+        setError(res.error.message);
+      }
+    });
+  }
+
   function reset() {
     setMessages([initialAi]);
     setLead({});
     setInput("");
     setAppointmentCreated(null);
+    setError(null);
+    if (mode === "real") {
+      startTransition(async () => {
+        await clearDemoConversationAction();
+      });
+    }
+  }
+
+  function toggleMode() {
+    const next = mode === "simulated" ? "real" : "simulated";
+    setMode(next);
+    // Reset the UI when switching modes so the two conversations don't
+    // visually bleed into each other.
+    setMessages([initialAi]);
+    setLead({});
+    setAppointmentCreated(null);
+    setError(null);
+    if (next === "simulated") {
+      // Leaving real mode: also drop the server-side demo conversation so
+      // the next time the user flips back to real mode they start clean.
+      startTransition(async () => {
+        await clearDemoConversationAction();
+      });
+    }
   }
 
   const suggestions = useMemo(() => {
@@ -241,13 +293,29 @@ export function AiDemo({
               </p>
               <p className="flex items-center gap-1.5 text-xs text-emerald-600">
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-                En línea · powered by IA Aizorix
+                {mode === "real"
+                  ? "Modo real · usa la IA y consume créditos OpenAI"
+                  : "Modo simulado · respuesta local sin coste"}
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={reset}>
-            <RotateCcw /> Reiniciar
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant={mode === "real" ? "primary" : "outline"}
+              size="sm"
+              onClick={toggleMode}
+              title={
+                mode === "real"
+                  ? "Cambiar a modo simulado (sin coste)"
+                  : "Cambiar a modo real (consume tokens OpenAI)"
+              }
+            >
+              <Zap className="h-4 w-4" /> {mode === "real" ? "Modo real" : "Activar real"}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={reset}>
+              <RotateCcw /> Reiniciar
+            </Button>
+          </div>
         </header>
 
         <div
@@ -284,6 +352,12 @@ export function AiDemo({
           )}
         </div>
 
+        {error && (
+          <p className="mx-3 mt-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-red-200/70">
+            {error}
+          </p>
+        )}
+
         <form
           onSubmit={handleSend}
           className="flex items-center gap-2 border-t border-[color:var(--color-ink-100)] bg-white p-3"
@@ -291,10 +365,15 @@ export function AiDemo({
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Escribe como si fueras un cliente…"
+            placeholder={
+              mode === "real"
+                ? "Escribe — la respuesta sale del bot real…"
+                : "Escribe como si fueras un cliente…"
+            }
             className="flex-1"
+            disabled={typing && mode === "real"}
           />
-          <Button type="submit" variant="accent" size="icon">
+          <Button type="submit" variant="accent" size="icon" disabled={typing && mode === "real"}>
             <Send className="h-4 w-4" />
           </Button>
         </form>

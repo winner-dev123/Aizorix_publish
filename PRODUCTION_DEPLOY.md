@@ -65,6 +65,13 @@ TWILIO_WHATSAPP_FROM="whatsapp:+34911000000"
 DEFAULT_CLINIC_SLUG="bellem"
 DEFAULT_TIMEZONE="Europe/Madrid"
 
+# ---- Observability ----
+# Optional bearer-token gate for /api/metrics (Prometheus exposition).
+# If unset, /api/metrics is open — fine on a private network, dangerous
+# on the public internet. Generate any random string; share it with your
+# Prometheus/Grafana-Agent scraper config.
+METRICS_AUTH_TOKEN=""
+
 # ---- Node mode ----
 NODE_ENV="production"
 ```
@@ -183,14 +190,13 @@ Inspect the build output for anything routed to the Edge runtime that shouldn't 
 
 | Gap | Risk | Mitigation today |
 |---|---|---|
-| **No rate limiting on `/api/webhooks/whatsapp`** | A spoofed Twilio signature could keep getting rejected for free, but a *valid* signature + flooded inbound could rack up OpenAI cost | OpenAI hard spend cap; Twilio sender-allowlist if needed |
+| **In-memory webhook rate limit** | Per-sender token bucket lives in process memory only — fine for single-instance deploys, useless across replicas | Pin the app to one instance, or swap `src/server/rate-limit.ts` for an Upstash/Redis backed impl when scaling out |
 | **No rate limiting on `/api/chat`** | Production gates it by session+clinicId, so an authenticated user could still spam | Add a per-conversation cooldown if abused |
-| **No observability/metrics export** | Hard to spot a regression | Ship app logs to Logtail/Datadog/etc. Watch the `[/api/webhooks/whatsapp]` and `[auth]` log lines |
+| **In-process metrics only** | `/api/metrics` exposes Prometheus counters (webhook requests, orchestrate outcomes, manual replies, rate-limit denials) but they live in a single process — horizontal scaling means each replica has its own slice | Point a scraper at every replica, or aggregate via a remote-write target. Set `METRICS_AUTH_TOKEN` so the endpoint isn't public |
 | **No automatic Prisma migration on deploy** | Forgetting `migrate deploy` means a broken release | Add a CI step or hosting release-command |
-| **No staff signup flow** | Owner adds users by hand (custom Auth.js adapter rejects unknown emails) | This is intentional — see [HANDOFF.md §8.3](HANDOFF.md#8) |
+| **No staff signup flow (by design)** | Owner adds users via `/app/settings/staff` (or the custom Auth.js adapter would reject unknown emails) | `inviteStaffAction` covers the OWNER/ADMIN-driven case; truly self-service signup is not yet built |
 | **No automated DB backups** | Conversation history loss on host incident | Whatever your host offers + a daily `pg_dump` to off-host storage |
-| **No `/health` endpoint** | Load balancers can't tell if the app is up | Use Next.js's `/api/auth/csrf` (always returns 200 if Auth.js is working) as a poor man's check, or add one |
-| **AI demo at `/app/ai`** | Still client-side mock — doesn't reflect real bot behavior | Acceptable for now (see [HANDOFF.md §8.6](HANDOFF.md#8)). Don't show prospective clients without disclaiming. |
+| **AI demo at `/app/ai`** | Has a `modo simulado / modo real` toggle. Real mode hits the live orchestrator and costs OpenAI tokens per click — fine for staff smoke-tests, costly for unattended demos | The toggle defaults to simulated; warn staff if they leave it in real mode |
 
 ---
 
@@ -198,22 +204,20 @@ Inspect the build output for anything routed to the Edge runtime that shouldn't 
 
 To add a second clinic to the same deployment:
 
-1. Insert the new `Clinic` row server-side:
-   ```ts
-   await prisma.clinic.create({
-     data: {
-       name: "Clínica Nueva",
-       slug: "nueva",
-       timezone: "Europe/Madrid",
-       locale: "es-ES",
-       whatsappNumber: "+34922000000",
-     },
-   });
+1. Bootstrap the clinic + initial OWNER in one command (validates uniqueness on slug + whatsappNumber):
+   ```bash
+   DATABASE_URL="postgresql://..." npm run create:clinic -- \
+     --slug nueva \
+     --name "Clínica Nueva" \
+     --owner-email owner@nueva.es \
+     --timezone Europe/Madrid \
+     --locale es-ES \
+     --whatsapp +34922000000
    ```
-2. Create the OWNER user for that clinic in the DB.
-3. Provision treatments, technicians, and business hours via the dashboard (`/app/settings/*`) or by extending `prisma/seed.ts` for them.
-4. Configure a **second Twilio sender** for that clinic and update its `whatsappNumber` to match.
-5. The webhook routes by `whatsappNumber` automatically — no code change required.
+   Prints the new clinic + owner-user IDs on success, with clear error messages on bad input or collisions.
+2. Provision treatments, technicians, and business hours via the dashboard (`/app/settings/*` once the owner signs in) or by extending `prisma/seed.ts` for them.
+3. Configure a **second Twilio sender** for that clinic and update its `whatsappNumber` if you didn't pass `--whatsapp` above.
+4. The webhook routes by `whatsappNumber` automatically — no code change required.
 
 ---
 
@@ -261,7 +265,11 @@ These need product/business answers before they unblock more work:
 |---|---|
 | Apply prod migrations | `DATABASE_URL=… npx prisma migrate deploy` |
 | Seed first tenant | `DATABASE_URL=… npm run db:seed` |
+| Bootstrap an additional clinic | `DATABASE_URL=… npm run create:clinic -- --slug … --name … --owner-email …` |
 | Generate AUTH_SECRET | `openssl rand -base64 32` |
+| Health-check the app | `curl https://app.yourclinicdomain.com/api/health` (returns 200 + `{status:"ok"}` when DB reachable, 503 otherwise) |
+| Scrape metrics | `curl -H "Authorization: Bearer $METRICS_AUTH_TOKEN" https://app.yourclinicdomain.com/api/metrics` (Prometheus exposition format) |
 | Health-check the webhook | curl with a valid `X-Twilio-Signature` (see [src/server/whatsapp/twilio.ts](src/server/whatsapp/twilio.ts) for the algorithm) |
 | Inspect the last tool trace | `npx tsx scripts/last-tools.ts "<phoneE164>"` |
 | Trigger a dev sign-in (no SMTP) | sign in at `/signin`, copy the magic link from the dev terminal |
+| Tune the WhatsApp rate limit | `WHATSAPP_RATE_CAPACITY=20 WHATSAPP_RATE_REFILL_PER_SEC=0.5` (defaults: 10 capacity, 1/6 per sec) |

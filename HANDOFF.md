@@ -132,11 +132,17 @@ src/
       campaigns/page.tsx                   # Live (Phase 5 — server shell)
       metrics/page.tsx                     # Live (Phase 5 — aggregations)
       settings/page.tsx                    # Live (Phase 5)
-      ai/page.tsx                          # Live (Phase 5 — server shell)
+      settings/clinic/page.tsx             # Live (Phase 6.0)
+      settings/hours/page.tsx              # Live (Phase 6.1)
+      settings/ai/page.tsx                 # Live (Phase 6.2)
+      settings/staff/page.tsx              # Live (Phase 6.4)
+      ai/page.tsx                          # Live (Phase 6.5 — modo simulado/real toggle)
     api/
       auth/[...nextauth]/route.ts
       chat/route.ts                        # /api/chat — open in dev, auth-gated in prod
-      webhooks/whatsapp/route.ts           # Phase 3 webhook (skips send when paused)
+      health/route.ts                      # Phase 6.6 — liveness + DB readiness probe
+      metrics/route.ts                     # Phase 6.8 — Prom exposition, METRICS_AUTH_TOKEN bearer gate
+      webhooks/whatsapp/route.ts           # Phase 3 webhook (skips send when paused, rate-limited, instrumented)
       clinics/[clinicId]/availability/route.ts
       clinics/[clinicId]/appointments/route.ts
       appointments/[id]/route.ts
@@ -144,6 +150,8 @@ src/
   server/
     db.ts
     errors.ts
+    rate-limit.ts                          # Phase 6.6 — token bucket (in-memory, single-instance)
+    metrics.ts                             # Phase 6.8 — counter registry + Prom exposition
     availability/                          # Phase 1 engine
     booking/                               # Phase 1 transactional services
     treatments/match.ts
@@ -158,9 +166,12 @@ src/
     whatsapp/
       client.ts, stub.ts, twilio.ts, index.ts
     actions/
-      appointments.ts                      # 5 server actions (incl. sendManualReply, setBotPaused)
+      appointments.ts                      # 5 actions (incl. sendManualReply, setBotPaused)
+      clinic.ts                            # 3 actions: updateClinic, updateBusinessHours, updateAiConfig
+      staff.ts                             # 3 actions: invite, setActive, setRole
+      ai-demo.ts                           # 2 actions: runDemoTurn, clearDemoConversation
     dashboard/
-      queries.ts                           # 11 shared Prisma queries (clinic-scoped)
+      queries.ts                           # 12 shared Prisma queries (clinic-scoped)
 
   components/
     dashboard/
@@ -176,6 +187,7 @@ src/
 
 scripts/                                   # tsx helpers for debugging
   print-ids.ts, list-appts.ts, delete-appt.ts, reset-phone.ts, last-tools.ts
+  create-clinic.ts                         # Phase 6.7 — bootstrap new clinic + OWNER user
 
 docker-compose.yml                         # Postgres 16 on host port 5433
 .env.example
@@ -230,7 +242,7 @@ npx prisma migrate deploy          # apply all migrations
 npx prisma generate
 npm run db:seed                    # idempotent Bellem seed
 
-npm test                           # 89 tests pass (13 files)
+npm test                           # 124 tests pass (20 files)
 npm run dev                        # http://localhost:3000
 ```
 
@@ -248,6 +260,7 @@ npm run dev                        # http://localhost:3000
 | `npm run db:seed` | Upsert Bellem data |
 | `npm run db:studio` | Prisma Studio on :5555 |
 | `npm run db:ids` | Print clinic/treatment/technician IDs |
+| `npm run create:clinic -- --slug <s> --name <n> --owner-email <e>` | Bootstrap a new clinic + initial OWNER user (Phase 6.7) |
 | `npm run db:reset` | `prisma migrate reset --force` (destructive) |
 | `npx tsx scripts/list-appts.ts <yyyy-mm-dd>` | List appointments on a date |
 | `npx tsx scripts/last-tools.ts "<phoneE164>"` | Show last conversation's tool trace |
@@ -306,7 +319,14 @@ Use `npm run db:ids` to refresh — values change every reseed.
 | `prompt.test.ts` | 7 | Phase 6.2 — tone branches + INSTRUCCIONES ADICIONALES block (pure unit test) |
 | `clinic.actions.integration.test.ts` | 12 | Phase 6 — settings actions: auth gate, role gate, validation, WHATSAPP_TAKEN, overlap detection, replace-all, trim+null |
 | `dashboard.actions.integration.test.ts` | 8 | Phase 5 — manual reply + pause-bot actions: auth gate, clinic scope, NO_CLINIC_NUMBER, metadata.source persistence, paused-flag flips |
-| **TOTAL** | **89** | |
+| `staff.actions.integration.test.ts` | 13 | Phase 6.4 — invite/active/role actions: auth & role gates, ALREADY_ACTIVE, reactivate path, signIn-failure soft error, SELF_LOCKOUT, LAST_OWNER guards, non-OWNER can't touch OWNER |
+| `rate-limit.test.ts` | 4 | Phase 6.6 — token-bucket: burst capacity, refill over time, cap at capacity, per-key isolation |
+| `ai-demo.actions.integration.test.ts` | 6 | Phase 6.5 — runDemoTurn + clearDemoConversation: auth gate, validation, WEB-channel persistence, idempotent clear |
+| `health/__tests__/route.test.ts` | 1 | Phase 6.6 — /api/health returns 200 + sensible shape when DB reachable |
+| `webhook/__tests__/rate-limit.test.ts` | 2 | Phase 6.6 — verifies limiter is actually wired into the WhatsApp webhook (429 after capacity, per-sender isolation) |
+| `metrics.test.ts` | 5 | Phase 6.8 — counter registry: increment, label-bucketing, HELP+TYPE preamble, label-order canonicalization, escaping |
+| `metrics/__tests__/route.test.ts` | 4 | Phase 6.8 — /api/metrics: Prom format, METRICS_AUTH_TOKEN gating (404 when missing/wrong, 200 with correct bearer) |
+| **TOTAL** | **124** | |
 
 Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`. Vitest loads `.env` via `setupFiles: ["dotenv/config"]`. **`fileParallelism: false`** in [vitest.config.ts](vitest.config.ts) prevents the SSI race that makes parallel integration tests conflict on the same tables — see §7. Action tests mock `next/cache` because `revalidatePath` requires Next.js's static-generation store, which isn't available in vitest.
 
@@ -389,8 +409,8 @@ Phase 1-5 closed out the original §8 punch list. Phase 6 added settings sub-pag
 1. **Real Twilio provisioning** — webhook is wired but no real number is connected. Dev mode uses the stub.
 2. **Real SMTP** — dev mode logs the magic link to the console. For production, fill in `SMTP_HOST`.
 3. **Multi-tenant self-service signup** — Users are inserted server-side by the clinic owner; signup is not self-service. Custom adapter rejects unknown emails.
-4. **Sub-pages under settings** — `/app/settings/clinic` (name/timezone/locale/WhatsApp/lead minutes/slot granularity), `/app/settings/hours` (per-weekday business hours with split-shift support), and `/app/settings/ai` (tone + free-text guidance, wired into buildSystemPrompt) are live, all OWNER+ADMIN gated. The remaining three cards (Empleados / Módulos / Facturación) still say "Próximamente".
-5. **AI demo doesn't hit the real orchestrator** — `/app/ai` runs a client-side simulation seeded with real treatments. Could be rewired to `POST /api/chat` for an authentic preview, at the cost of real OpenAI tokens per click.
+4. **Sub-pages under settings** — `/app/settings/clinic`, `/app/settings/hours`, `/app/settings/ai`, and `/app/settings/staff` (invite/role/active with magic-link email on creation, SELF_LOCKOUT + LAST_OWNER guards) are live, all OWNER+ADMIN gated. The remaining two cards (Módulos / Facturación) still say "Próximamente".
+5. **Módulos contratados** and **Facturación** settings cards — still "Próximamente" because both need product/business decisions (what's a module? what's the pricing model?) before they can be coded.
 
 ---
 
@@ -406,7 +426,7 @@ Phase 1-5 closed out the original §8 punch list. Phase 6 added settings sub-pag
 
 ### If continuing in the existing directory
 - `npm run db:up` (idempotent)
-- `npm test` to confirm green (89 tests, runs sequentially)
+- `npm test` to confirm green (124 tests, runs sequentially)
 - `npm run dev` and open [http://localhost:3000/app](http://localhost:3000/app)
 
 ### To sign in (dev)
@@ -472,7 +492,7 @@ If everything is wired correctly, this is what passes:
 ```bash
 npm run typecheck   # → clean
 npm run lint        # → clean
-npm test            # → Test Files 13 passed (13) | Tests 89 passed (89)
+npm test            # → Test Files 20 passed (20) | Tests 124 passed (124)
 ```
 
 If any of these fail, that's the first thing to fix before reading further.

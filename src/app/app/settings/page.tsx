@@ -39,9 +39,9 @@ const SECTIONS = [
   {
     icon: Users,
     title: "Empleados y permisos",
-    desc: "Roles, accesos y especialidades.",
+    desc: "Invita personal, asigna roles y desactiva accesos.",
     color: "from-violet-500/15 to-violet-500/5",
-    href: null,
+    href: "/app/settings/staff" as const,
   },
   {
     icon: Bot,

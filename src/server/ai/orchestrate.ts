@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
+import { incr } from "../metrics";
 import { getLLMClient } from "./openai";
 import type { LLMClient, LLMMessage } from "./client";
 import { buildSystemPrompt } from "./prompt";
@@ -85,6 +86,7 @@ export async function orchestrate(
   // message but skip the LLM round-trip. The caller (webhook) sees the empty
   // respuesta and skips the outbound send. Staff will resume by toggling off.
   if (conversation.botPaused) {
+    incr("aizorix_orchestrate_runs_total", { outcome: "paused" });
     return {
       respuesta: "",
       accion: "PAUSED",
@@ -230,6 +232,8 @@ export async function orchestrate(
     where: { id: conversation.id },
     select: { requiresHuman: true },
   });
+
+  incr("aizorix_orchestrate_runs_total", { outcome: "ok" });
 
   return {
     respuesta: finalText,

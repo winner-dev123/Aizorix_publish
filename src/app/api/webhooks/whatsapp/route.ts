@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/server/db";
 import { orchestrate } from "@/server/ai/orchestrate";
+import { checkRateLimit } from "@/server/rate-limit";
+import { incr } from "@/server/metrics";
 import {
   type InboundMessage,
   getWhatsAppProvider,
   parseTwilioInbound,
   verifyTwilioSignature,
 } from "@/server/whatsapp";
+
+// Per-sender rate cap. 10 messages with a 1-message/6-seconds refill is
+// enough for normal back-and-forth but stops a runaway sender from
+// burning OpenAI tokens. Tune via env if it ever bites real traffic.
+const WEBHOOK_RATE_CAPACITY = Number(process.env.WHATSAPP_RATE_CAPACITY ?? 10);
+const WEBHOOK_RATE_REFILL_PER_SEC = Number(process.env.WHATSAPP_RATE_REFILL_PER_SEC ?? 1 / 6);
 
 /**
  * Inbound WhatsApp webhook (Twilio shape).
@@ -30,6 +38,7 @@ export async function POST(request: NextRequest) {
     const raw = await request.text();
     formParams = Object.fromEntries(new URLSearchParams(raw));
   } catch {
+    incr("aizorix_whatsapp_webhook_requests_total", { status: "400" });
     return NextResponse.json({ error: "INVALID_BODY" }, { status: 400 });
   }
 
@@ -43,13 +52,28 @@ export async function POST(request: NextRequest) {
       authToken,
     });
     if (!valid) {
+      incr("aizorix_whatsapp_webhook_requests_total", { status: "403" });
       return NextResponse.json({ error: "INVALID_SIGNATURE" }, { status: 403 });
     }
   }
 
   inbound = parseTwilioInbound(formParams);
   if (!inbound) {
+    incr("aizorix_whatsapp_webhook_requests_total", { status: "400" });
     return NextResponse.json({ error: "UNPARSABLE_PAYLOAD" }, { status: 400 });
+  }
+
+  // Rate-limit by sender. Twilio retries on non-2xx, so a 429 here is OK —
+  // they'll backoff and we'll be ready by the time they come back. Inbound
+  // is keyed on the sender phone (not the clinic) so one chatty sender
+  // can't starve other patients of the same clinic.
+  if (!checkRateLimit(`wa:${inbound.fromAddress}`, WEBHOOK_RATE_CAPACITY, WEBHOOK_RATE_REFILL_PER_SEC)) {
+    incr("aizorix_rate_limit_denials_total", { source: "whatsapp" });
+    incr("aizorix_whatsapp_webhook_requests_total", { status: "429" });
+    return NextResponse.json(
+      { error: "RATE_LIMITED", message: "Demasiados mensajes en poco tiempo" },
+      { status: 429 },
+    );
   }
 
   const clinic = await prisma.clinic.findUnique({
@@ -57,6 +81,7 @@ export async function POST(request: NextRequest) {
   });
   if (!clinic) {
     console.warn(`[whatsapp] no clinic registered for ${inbound.toAddress}`);
+    incr("aizorix_whatsapp_webhook_requests_total", { status: "404" });
     return NextResponse.json({ error: "CLINIC_NOT_REGISTERED" }, { status: 404 });
   }
 
@@ -73,6 +98,7 @@ export async function POST(request: NextRequest) {
     // (already done by orchestrate) and stay silent. Staff will reply
     // manually through the dashboard composer.
     if (envelope.accion === "PAUSED" || !envelope.respuesta) {
+      incr("aizorix_whatsapp_webhook_requests_total", { status: "200" });
       return NextResponse.json({
         conversationId: envelope.conversationId,
         delivery: { status: "SKIPPED" },
@@ -88,6 +114,7 @@ export async function POST(request: NextRequest) {
       text: envelope.respuesta,
     });
 
+    incr("aizorix_whatsapp_webhook_requests_total", { status: "200" });
     return NextResponse.json({
       conversationId: envelope.conversationId,
       delivery: result,
@@ -96,6 +123,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (e) {
     console.error("[/api/webhooks/whatsapp]", e);
+    incr("aizorix_whatsapp_webhook_requests_total", { status: "500" });
     return NextResponse.json(
       { error: "INTERNAL", message: e instanceof Error ? e.message : "unknown" },
       { status: 500 },

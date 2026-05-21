@@ -30,7 +30,9 @@ export async function getAgendaWeek(clinicId: string, anchor: Date = new Date())
 
 export async function getNeedsAttentionConversations(clinicId: string) {
   return prisma.conversation.findMany({
-    where: { clinicId, requiresHuman: true },
+    // Demo runs from /app/ai create WEB-channel rows; filter them out of
+    // the staff inbox so they don't show up as real patient threads.
+    where: { clinicId, requiresHuman: true, channel: "WHATSAPP" },
     include: {
       patient: { select: { id: true, firstName: true, lastName: true, phone: true } },
       messages: { orderBy: { createdAt: "desc" }, take: 1 },
@@ -47,7 +49,7 @@ export async function getNeedsAttentionConversations(clinicId: string) {
 
 export async function getRecentConversations(clinicId: string) {
   return prisma.conversation.findMany({
-    where: { clinicId },
+    where: { clinicId, channel: "WHATSAPP" },
     include: {
       patient: { select: { id: true, firstName: true, lastName: true, phone: true } },
       messages: { orderBy: { createdAt: "desc" }, take: 1 },
@@ -101,7 +103,7 @@ export async function getHomeDashboard(clinicId: string) {
       where: { clinicId, createdAt: { gte: sevenDaysAgo } },
     }),
     prisma.conversation.count({
-      where: { clinicId, requiresHuman: true },
+      where: { clinicId, requiresHuman: true, channel: "WHATSAPP" },
     }),
     prisma.appointment.count({
       where: {
@@ -132,7 +134,7 @@ export async function getHomeDashboard(clinicId: string) {
       take: 5,
     }),
     prisma.conversation.findMany({
-      where: { clinicId },
+      where: { clinicId, channel: "WHATSAPP" },
       include: {
         patient: { select: { firstName: true, lastName: true } },
         messages: { orderBy: { createdAt: "desc" }, take: 1 },
@@ -141,7 +143,7 @@ export async function getHomeDashboard(clinicId: string) {
       take: 5,
     }),
     prisma.conversation.count({
-      where: { clinicId, createdAt: { gte: thirtyDaysAgo } },
+      where: { clinicId, channel: "WHATSAPP", createdAt: { gte: thirtyDaysAgo } },
     }),
     prisma.appointment.count({
       where: {
@@ -319,7 +321,7 @@ export async function getMetricsOverview(clinicId: string) {
       where: { clinicId, createdAt: { gte: thirtyDaysAgo } },
     }),
     prisma.conversation.count({
-      where: { clinicId, createdAt: { gte: thirtyDaysAgo } },
+      where: { clinicId, channel: "WHATSAPP", createdAt: { gte: thirtyDaysAgo } },
     }),
     prisma.appointment.count({
       where: {
@@ -647,6 +649,26 @@ export async function getPatientDetail(clinicId: string, patientId: string) {
         orderBy: { lastMessageAt: "desc" },
       },
     },
+  });
+}
+
+/**
+ * Staff list for /app/settings/staff. Returns all users belonging to the
+ * given clinic (active + inactive), ordered with active first then by
+ * creation date. Includes the basic fields the page renders.
+ */
+export async function getStaffList(clinicId: string) {
+  return prisma.user.findMany({
+    where: { clinicId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      active: true,
+      createdAt: true,
+    },
+    orderBy: [{ active: "desc" }, { createdAt: "asc" }],
   });
 }
 

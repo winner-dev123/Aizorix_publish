@@ -5,12 +5,11 @@ import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { updateClinicAction, type UpdateClinicInput } from "@/server/actions/clinic";
 import {
   CLINIC_LOCALE_OPTIONS,
   CLINIC_TIMEZONE_OPTIONS,
-  updateClinicAction,
-  type UpdateClinicInput,
-} from "@/server/actions/clinic";
+} from "@/server/actions/clinic-options";
 
 export type ClinicFormDefaults = {
   name: string;

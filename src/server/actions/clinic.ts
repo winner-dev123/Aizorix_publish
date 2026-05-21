@@ -4,32 +4,20 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
+import {
+  CLINIC_AI_TONE_OPTIONS,
+  CLINIC_LOCALE_OPTIONS,
+  CLINIC_TIMEZONE_OPTIONS,
+} from "./clinic-options";
 
 type ActionResult =
   | { ok: true }
   | { ok: false; error: { code: string; message: string } };
 
-const TIMEZONE_OPTIONS = [
-  "Europe/Madrid",
-  "Europe/Lisbon",
-  "Europe/London",
-  "Europe/Paris",
-  "Europe/Berlin",
-  "America/Mexico_City",
-  "America/Argentina/Buenos_Aires",
-  "America/Bogota",
-  "America/New_York",
-] as const;
-
-const LOCALE_OPTIONS = ["es-ES", "es-MX", "es-AR", "pt-BR", "en-US"] as const;
-
-export const CLINIC_TIMEZONE_OPTIONS = TIMEZONE_OPTIONS;
-export const CLINIC_LOCALE_OPTIONS = LOCALE_OPTIONS;
-
 const inputSchema = z.object({
   name: z.string().trim().min(2).max(120),
-  timezone: z.enum(TIMEZONE_OPTIONS),
-  locale: z.enum(LOCALE_OPTIONS),
+  timezone: z.enum(CLINIC_TIMEZONE_OPTIONS),
+  locale: z.enum(CLINIC_LOCALE_OPTIONS),
   whatsappNumber: z
     .string()
     .trim()
@@ -175,11 +163,8 @@ export async function updateBusinessHoursAction(rows: BusinessHoursInput): Promi
   return { ok: true };
 }
 
-const AI_TONE_VALUES = ["FORMAL", "CASUAL", "NEUTRAL"] as const;
-export const CLINIC_AI_TONE_OPTIONS = AI_TONE_VALUES;
-
 const aiConfigSchema = z.object({
-  aiTone: z.enum(AI_TONE_VALUES),
+  aiTone: z.enum(CLINIC_AI_TONE_OPTIONS),
   aiGuidance: z
     .string()
     .max(2000, "Máximo 2000 caracteres")

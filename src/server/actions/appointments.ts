@@ -8,6 +8,7 @@ import { cancelAppointment } from "@/server/booking/cancel";
 import { rescheduleAppointment } from "@/server/booking/reschedule";
 import { isDomainError } from "@/server/errors";
 import { getWhatsAppProvider } from "@/server/whatsapp";
+import { incr } from "@/server/metrics";
 
 type ActionResult =
   | { ok: true }
@@ -202,6 +203,7 @@ export async function sendManualReplyAction(
     }),
   ]);
 
+  incr("aizorix_manual_replies_total", { provider: provider.id });
   revalidatePath("/app/conversations");
   return { ok: true };
 }
