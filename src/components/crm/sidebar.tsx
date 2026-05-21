@@ -19,18 +19,29 @@ import {
 import { AizorixLogo } from "@/components/brand/aizorix-logo";
 import { cn } from "@/lib/utils";
 
+import type { ModuleKey } from "@/server/actions/module-catalogue";
+
 interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
   group: "Workspace" | "Comunicación" | "Crecimiento" | "Sistema";
   badge?: string;
+  // When present, this nav entry is hidden if the clinic has the matching
+  // module key disabled. Entries without `moduleKey` are core (always shown).
+  moduleKey?: ModuleKey;
 }
 
 function buildNav(needsAttentionCount: number): NavItem[] {
   return [
     { href: "/app", label: "Dashboard", icon: LayoutDashboard, group: "Workspace" },
-    { href: "/app/pipeline", label: "Pipeline", icon: KanbanSquare, group: "Workspace" },
+    {
+      href: "/app/pipeline",
+      label: "Pipeline",
+      icon: KanbanSquare,
+      group: "Workspace",
+      moduleKey: "pipeline",
+    },
     { href: "/app/clients", label: "Clientes", icon: Users, group: "Workspace" },
     {
       href: "/app/conversations",
@@ -42,10 +53,34 @@ function buildNav(needsAttentionCount: number): NavItem[] {
       // flagged requiresHuman=true (passed in via props).
       badge: needsAttentionCount > 0 ? String(needsAttentionCount) : undefined,
     },
-    { href: "/app/agenda", label: "Agenda", icon: Calendar, group: "Comunicación" },
-    { href: "/app/ai", label: "IA Recepcionista", icon: Bot, group: "Comunicación" },
-    { href: "/app/campaigns", label: "Campañas IA", icon: Megaphone, group: "Crecimiento" },
-    { href: "/app/metrics", label: "Métricas", icon: BarChart3, group: "Crecimiento" },
+    {
+      href: "/app/agenda",
+      label: "Agenda",
+      icon: Calendar,
+      group: "Comunicación",
+      moduleKey: "agenda",
+    },
+    {
+      href: "/app/ai",
+      label: "IA Recepcionista",
+      icon: Bot,
+      group: "Comunicación",
+      moduleKey: "ai-demo",
+    },
+    {
+      href: "/app/campaigns",
+      label: "Campañas IA",
+      icon: Megaphone,
+      group: "Crecimiento",
+      moduleKey: "campaigns",
+    },
+    {
+      href: "/app/metrics",
+      label: "Métricas",
+      icon: BarChart3,
+      group: "Crecimiento",
+      moduleKey: "metrics",
+    },
     { href: "/app/settings", label: "Configuración", icon: Settings, group: "Sistema" },
   ];
 }
@@ -63,15 +98,25 @@ export function CrmSidebar({
   treatmentCount = 0,
   userCount = 0,
   technicianCount = 0,
+  activeModules,
 }: {
   needsAttentionCount?: number;
   clinicName?: string;
   treatmentCount?: number;
   userCount?: number;
   technicianCount?: number;
+  /**
+   * Module keys the clinic has enabled. When `undefined` (e.g. an
+   * unauthenticated render of the layout shell), all entries are shown.
+   * When defined, entries with a `moduleKey` not in this set are hidden.
+   */
+  activeModules?: readonly ModuleKey[];
 }) {
   const pathname = usePathname();
-  const nav = buildNav(needsAttentionCount);
+  const activeSet = activeModules ? new Set(activeModules) : null;
+  const nav = buildNav(needsAttentionCount).filter(
+    (n) => !n.moduleKey || !activeSet || activeSet.has(n.moduleKey),
+  );
 
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-[color:var(--color-ink-100)] bg-white/85 backdrop-blur-xl md:flex">

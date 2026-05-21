@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
 import { getClinicOverview } from "@/server/dashboard/queries";
+import { isKnownModule, type ModuleKey } from "@/server/actions/module-catalogue";
 import { CrmSidebar } from "@/components/crm/sidebar";
 import { CrmTopbar } from "@/components/crm/topbar";
 
@@ -24,6 +25,9 @@ export default async function CrmLayout({
   const clinicName = overview?.clinic.name ?? "Aizorix";
   const userRole = session?.user?.role ?? "STAFF";
   const userLabel = session?.user?.name ?? session?.user?.email ?? "";
+  // Filter the raw activeModules array against the catalogue so a stale
+  // string key from a deleted module doesn't get passed to the client.
+  const activeModules: ModuleKey[] = (overview?.clinic.activeModules ?? []).filter(isKnownModule);
 
   return (
     <div className="relative flex min-h-screen flex-1 bg-[color:var(--color-surface-2)]">
@@ -41,6 +45,7 @@ export default async function CrmLayout({
         treatmentCount={overview?.treatmentCount ?? 0}
         userCount={overview?.userCount ?? 0}
         technicianCount={overview?.technicianCount ?? 0}
+        activeModules={clinicId ? activeModules : undefined}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <CrmTopbar clinicName={clinicName} userRole={userRole} userLabel={userLabel} />

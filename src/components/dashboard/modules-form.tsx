@@ -102,8 +102,9 @@ export function ModulesForm({ initial }: { initial: ModuleKey[] }) {
       )}
 
       <p className="text-xs text-[color:var(--color-ink-500)]">
-        Por ahora estos interruptores se guardan en la clínica pero todavía no ocultan secciones
-        de la barra lateral — la lógica de visibilidad llegará en una fase siguiente.
+        Al desactivar un módulo, su entrada desaparece de la barra lateral en la próxima
+        navegación. Las URLs siguen accesibles directamente — si quieres bloquear el acceso
+        completamente, dilo y añadimos una redirección por ruta.
       </p>
     </form>
   );
