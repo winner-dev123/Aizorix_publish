@@ -9,6 +9,7 @@ import { AppointmentControls } from "@/components/dashboard/appointment-controls
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
 import { getAgendaWeek } from "@/server/dashboard/queries";
+import { assertModuleActive } from "@/server/modules/guard";
 
 const HOURS = Array.from({ length: 11 }, (_, i) => i + 9); // 09:00 – 19:00 clinic-local
 
@@ -19,6 +20,7 @@ export default async function AgendaPage() {
   const session = await auth();
   if (!session?.user) redirect("/signin");
   const clinicId = session.user.clinicId;
+  await assertModuleActive(clinicId, "agenda");
 
   const clinic = await prisma.clinic.findUnique({ where: { id: clinicId } });
   if (!clinic) redirect("/signin");

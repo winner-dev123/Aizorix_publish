@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { ArrowDown, ArrowUp, BarChart3, TrendingUp, Users } from "lucide-react";
 import { auth } from "@/auth";
 import { getMetricsOverview, type MetricsOverview } from "@/server/dashboard/queries";
+import { assertModuleActive } from "@/server/modules/guard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatEUR } from "@/lib/utils";
@@ -55,6 +56,8 @@ function buildKpis(k: MetricsOverview["kpis"]): Kpi[] {
 export default async function MetricsPage() {
   const session = await auth();
   if (!session?.user) redirect("/signin");
+
+  await assertModuleActive(session.user.clinicId, "metrics");
 
   const data = await getMetricsOverview(session.user.clinicId);
 

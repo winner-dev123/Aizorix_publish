@@ -5,6 +5,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
 import { getPipelinePatients } from "@/server/dashboard/queries";
+import { assertModuleActive } from "@/server/modules/guard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -34,6 +35,7 @@ export default async function PipelinePage() {
   const session = await auth();
   if (!session?.user) redirect("/signin");
   const clinicId = session.user.clinicId;
+  await assertModuleActive(clinicId, "pipeline");
 
   const clinic = await prisma.clinic.findUnique({ where: { id: clinicId } });
   if (!clinic) redirect("/signin");

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
 import { AiDemo, type DemoTreatment } from "@/components/dashboard/ai-demo";
+import { assertModuleActive } from "@/server/modules/guard";
 
 export const revalidate = 60;
 
@@ -9,6 +10,7 @@ export default async function AIReceptionistPage() {
   const session = await auth();
   if (!session?.user) redirect("/signin");
   const clinicId = session.user.clinicId;
+  await assertModuleActive(clinicId, "ai-demo");
 
   const [clinic, treatments] = await Promise.all([
     prisma.clinic.findUnique({ where: { id: clinicId }, select: { name: true } }),
