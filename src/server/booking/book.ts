@@ -2,11 +2,17 @@ import { addMinutes } from "date-fns";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
 import { BookingError, DomainError } from "../errors";
+import { incr, registerCounter } from "../metrics";
 import {
   isWithinBusinessHours,
   resolveWindowsForRange,
 } from "../availability/business-hours";
 import { withBookingRetry } from "./retry";
+
+registerCounter(
+  "aizorix_appointments_created_total",
+  "Successful appointment creations, partitioned by createdBy (BOT|HUMAN|STAFF)",
+);
 
 export type BookAppointmentArgs = {
   clinicId: string;
@@ -46,7 +52,7 @@ export async function bookAppointment(args: BookAppointmentArgs) {
     now = new Date(),
   } = args;
 
-  return withBookingRetry(
+  const appointment = await withBookingRetry(
     () => prisma.$transaction(
     async (tx) => {
       const clinic = await tx.clinic.findUnique({ where: { id: clinicId } });
@@ -167,4 +173,7 @@ export async function bookAppointment(args: BookAppointmentArgs) {
   ),
   { label: "book" },
   );
+
+  incr("aizorix_appointments_created_total", { createdBy });
+  return appointment;
 }

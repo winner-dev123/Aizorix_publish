@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { fromZonedTime } from "date-fns-tz";
+import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
+import { bookAppointment } from "@/server/booking/book";
 import { cancelAppointment } from "@/server/booking/cancel";
 import { rescheduleAppointment } from "@/server/booking/reschedule";
 import { isDomainError } from "@/server/errors";
@@ -206,4 +208,127 @@ export async function sendManualReplyAction(
   incr("aizorix_manual_replies_total", { provider: provider.id });
   revalidatePath("/app/conversations");
   return { ok: true };
+}
+
+const notesSchema = z
+  .string()
+  .max(2000, "Máximo 2000 caracteres")
+  .transform((v) => v.trim())
+  .transform((v) => (v === "" ? null : v));
+
+/**
+ * Update the free-text notes on a patient. Clinic-scoped (cross-tenant
+ * updates are rejected with NOT_FOUND). Empty input is stored as NULL so
+ * the patient detail card hides the "Notas" section cleanly when staff
+ * delete their note text.
+ *
+ * Any authenticated staff member can write notes — they're internal
+ * context, not a setting that needs OWNER permissions.
+ */
+export async function updatePatientNotesAction(
+  patientId: string,
+  notes: string,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: { code: "UNAUTHORIZED", message: "No session" } };
+
+  const parsed = notesSchema.safeParse(notes);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: {
+        code: "VALIDATION_ERROR",
+        message: parsed.error.issues[0]?.message ?? "Datos inválidos",
+      },
+    };
+  }
+
+  // findFirst + the clinic predicate gives us the cross-tenant NOT_FOUND
+  // case without raising a P2025 from prisma.patient.update.
+  const target = await prisma.patient.findFirst({
+    where: { id: patientId, clinicId: session.user.clinicId },
+    select: { id: true },
+  });
+  if (!target) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Paciente no encontrado" } };
+  }
+
+  await prisma.patient.update({
+    where: { id: target.id },
+    data: { notes: parsed.data },
+  });
+
+  revalidatePath(`/app/clients/${target.id}`);
+  return { ok: true };
+}
+
+const createApptSchema = z.object({
+  patientId: z.string().min(1, "Selecciona un paciente"),
+  treatmentId: z.string().min(1, "Selecciona un tratamiento"),
+  technicianId: z.string().min(1, "Selecciona un técnico"),
+  // Browser datetime-local format: YYYY-MM-DDTHH:mm (no Z, no offset).
+  startsAtLocal: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/, "Fecha/hora no válida"),
+  notes: z
+    .string()
+    .max(2000)
+    .transform((v) => v.trim())
+    .transform((v) => (v === "" ? undefined : v))
+    .optional(),
+  bypassLeadTime: z.boolean().optional(),
+});
+
+export type CreateAppointmentInput = z.input<typeof createApptSchema>;
+
+/**
+ * Manually create an appointment from the dashboard. Wraps the same
+ * Serializable booking transaction the bot uses (so overlap, business
+ * hours, eligibility, lead-time, and exclusivity are all enforced — but
+ * staff can bypass lead-time with `bypassLeadTime` for last-minute walk-ins).
+ *
+ * Marks the row with createdBy = STAFF so metrics can distinguish bot-driven
+ * bookings from manual ones.
+ */
+export async function createAppointmentAction(
+  input: CreateAppointmentInput,
+): Promise<ActionResult & { appointmentId?: string }> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: { code: "UNAUTHORIZED", message: "No session" } };
+
+  const parsed = createApptSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: {
+        code: "VALIDATION_ERROR",
+        message: parsed.error.issues[0]?.message ?? "Datos inválidos",
+      },
+    };
+  }
+
+  const clinic = await prisma.clinic.findUnique({
+    where: { id: session.user.clinicId },
+    select: { timezone: true },
+  });
+  if (!clinic) return { ok: false, error: { code: "CLINIC_NOT_FOUND", message: "Clínica" } };
+
+  try {
+    const appt = await bookAppointment({
+      clinicId: session.user.clinicId,
+      patientId: parsed.data.patientId,
+      treatmentId: parsed.data.treatmentId,
+      technicianId: parsed.data.technicianId,
+      startsAt: fromZonedTime(parsed.data.startsAtLocal, clinic.timezone),
+      notes: parsed.data.notes,
+      createdBy: "STAFF",
+      bypassLeadTime: parsed.data.bypassLeadTime,
+    });
+    revalidatePath("/app/agenda");
+    revalidatePath("/app");
+    return { ok: true, appointmentId: appt.id };
+  } catch (err) {
+    if (isDomainError(err)) return { ok: false, error: { code: err.code, message: err.message } };
+    return { ok: false, error: { code: "UNKNOWN", message: (err as Error).message } };
+  }
 }

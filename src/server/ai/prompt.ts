@@ -8,6 +8,8 @@ type PromptContext = {
   externalChatId: string;
   patientId: string | null;
   patientFirstName: string | null;
+  /** Internal notes written by staff on /app/clients/[id] — passed through verbatim. */
+  patientNotes?: string | null;
   memories: { key: string; value: string }[];
   nowISO: string;
 };
@@ -41,7 +43,11 @@ OBJETIVO
 CONTEXTO ACTUAL
 ${patientBlock}
 Memorias previas del paciente:
-${memoryBlock}
+${memoryBlock}${
+    ctx.patientNotes?.trim()
+      ? `\nNotas internas del equipo (no las cites textualmente al paciente, úsalas para informar tus respuestas):\n  ${ctx.patientNotes.trim()}`
+      : ""
+  }
 
 REGLAS DE ACTUACIÓN
 1. Si el paciente pide algo concreto (tratamiento, fecha, técnico), busca con find_treatment y find_availability ANTES de confirmar nada.

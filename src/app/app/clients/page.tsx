@@ -60,8 +60,10 @@ export default async function ClientsPage({
           </span>
         </form>
 
-        <Button variant="primary" size="sm" disabled>
-          <Plus /> Nuevo cliente
+        <Button asChild variant="primary" size="sm">
+          <Link href="/app/clients/new">
+            <Plus /> Nuevo cliente
+          </Link>
         </Button>
       </div>
 

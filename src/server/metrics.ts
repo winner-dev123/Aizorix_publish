@@ -110,3 +110,7 @@ registerCounter(
   "aizorix_rate_limit_denials_total",
   "Requests rejected by the in-process rate limiter, by key prefix",
 );
+registerCounter(
+  "aizorix_ai_tool_calls_total",
+  "Tool invocations during orchestrator turns, partitioned by tool name",
+);

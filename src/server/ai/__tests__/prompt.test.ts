@@ -76,4 +76,32 @@ describe("buildSystemPrompt", () => {
     expect(p).toContain("\nPide siempre el DNI.");
     expect(p).not.toContain("  Pide siempre el DNI.");
   });
+
+  it("injects patientNotes as 'Notas internas del equipo' when present", () => {
+    const p = buildSystemPrompt({
+      ...BASE,
+      patientNotes: "Siempre con Diana. Alérgica a la lidocaína.",
+    });
+    expect(p).toContain("Notas internas del equipo");
+    expect(p).toContain("Siempre con Diana. Alérgica a la lidocaína.");
+    expect(p).toContain("no las cites textualmente al paciente");
+  });
+
+  it("omits the notes block when patientNotes is null/empty/whitespace", () => {
+    const a = buildSystemPrompt({ ...BASE, patientNotes: null });
+    const b = buildSystemPrompt({ ...BASE, patientNotes: "" });
+    const c = buildSystemPrompt({ ...BASE, patientNotes: "   \n  " });
+    expect(a).not.toContain("Notas internas del equipo");
+    expect(b).not.toContain("Notas internas del equipo");
+    expect(c).not.toContain("Notas internas del equipo");
+  });
+
+  it("trims whitespace around patientNotes before injecting", () => {
+    const p = buildSystemPrompt({
+      ...BASE,
+      patientNotes: "  Viene con su madre.  ",
+    });
+    expect(p).toContain("\n  Viene con su madre.\n");
+    expect(p).not.toContain("  Viene con su madre.  ");
+  });
 });

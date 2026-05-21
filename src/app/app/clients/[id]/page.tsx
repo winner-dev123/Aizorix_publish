@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
+  Brain,
   Calendar,
   Mail,
   MessageCircle,
@@ -17,6 +18,8 @@ import { getPatientDetail } from "@/server/dashboard/queries";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PatientNotesEditor } from "@/components/dashboard/patient-notes-editor";
+import { MemoriesEditor } from "@/components/dashboard/memories-editor";
 import { formatEUR } from "@/lib/utils";
 
 export const revalidate = 30;
@@ -147,11 +150,15 @@ export default async function ClientProfilePage({
               <Button variant="primary">
                 <MessageCircle /> Enviar WhatsApp
               </Button>
-              <Button variant="outline">
-                <Calendar /> Reservar cita
+              <Button asChild variant="outline">
+                <Link href="/app/agenda/new">
+                  <Calendar /> Reservar cita
+                </Link>
               </Button>
-              <Button variant="ghost">
-                <Pencil /> Editar ficha
+              <Button asChild variant="ghost">
+                <Link href={`/app/clients/${patient.id}/edit`}>
+                  <Pencil /> Editar ficha
+                </Link>
               </Button>
             </div>
           </CardContent>
@@ -240,20 +247,44 @@ export default async function ClientProfilePage({
             </CardContent>
           </Card>
 
-          {patient.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <StickyNote className="h-4 w-4 text-[color:var(--color-brand-500)]" /> Notas
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-[color:var(--color-ink-700)]">
-                  {patient.notes}
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-4 w-4 text-[color:var(--color-brand-500)]" /> Memorias del bot
+              </CardTitle>
+              <p className="text-xs text-[color:var(--color-ink-500)]">
+                Hechos duraderos que la IA reutilizará en futuras conversaciones — los puedes
+                añadir, editar o borrar manualmente.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <MemoriesEditor
+                patientId={patient.id}
+                initial={patient.memories.map((m) => ({
+                  key: m.key,
+                  value: m.value,
+                  updatedAt: m.updatedAt.toISOString(),
+                }))}
+                tzFormatted={Object.fromEntries(
+                  patient.memories.map((m) => [
+                    m.key,
+                    formatInTimeZone(m.updatedAt, tz, "dd/MM/yyyy HH:mm"),
+                  ]),
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <StickyNote className="h-4 w-4 text-[color:var(--color-brand-500)]" /> Notas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PatientNotesEditor patientId={patient.id} initial={patient.notes} />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

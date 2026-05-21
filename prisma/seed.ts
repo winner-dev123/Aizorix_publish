@@ -570,6 +570,39 @@ async function main() {
     },
   });
 
+  // A few seeded AiMemory rows so the "Memorias del bot" card has something
+  // to render on /app/clients/[id]. In real traffic these are written by the
+  // orchestrator's set_memory tool when the bot learns durable facts.
+  await prisma.aiMemory.createMany({
+    data: [
+      {
+        clinicId: clinic.id,
+        patientId: lucia.id,
+        key: "preferred_technician",
+        value: "Diana",
+      },
+      {
+        clinicId: clinic.id,
+        patientId: lucia.id,
+        key: "preferred_time",
+        value: "viernes por la tarde",
+      },
+      {
+        clinicId: clinic.id,
+        patientId: carmen.id,
+        key: "vip",
+        value: "Cliente recurrente — ofrecerle siempre prioridad en Leo.",
+      },
+      {
+        clinicId: clinic.id,
+        patientId: ana.id,
+        key: "context",
+        value: "Embarazo reciente — derivar a Diana para valoración facial.",
+      },
+    ],
+    skipDuplicates: true,
+  });
+
   console.log(
     `✓ Seed complete for clinic: ${clinic.name} (${clinic.id})\n  Demo: 4 patients, ${appointmentSpecs.length} appointments, 2 conversations, 1 handoff.`,
   );

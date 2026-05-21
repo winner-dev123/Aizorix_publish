@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Bot, Phone, Sparkles, UserRound } from "lucide-react";
+import { Bot, CheckCircle2, Phone, ShieldAlert, Sparkles, UserRound } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
@@ -202,6 +202,8 @@ function Thread({ conv, tz }: { conv: ConversationWithDetails; tz: string }) {
         </div>
       </header>
 
+      {conv.handoffs.length > 0 && <HandoffHistory handoffs={conv.handoffs} tz={tz} />}
+
       <div className="flex-1 space-y-4 overflow-y-auto bg-[color:var(--color-surface-2)] p-6">
         {conv.messages.length === 0 && (
           <p className="text-center text-sm text-[color:var(--color-ink-500)]">
@@ -210,8 +212,12 @@ function Thread({ conv, tz }: { conv: ConversationWithDetails; tz: string }) {
         )}
         {conv.messages.map((m) => {
           const isPatient = m.role === "USER";
+          const trace = readToolTrace(m.metadata);
           return (
-            <div key={m.id} className={cn("flex", isPatient ? "justify-start" : "justify-end")}>
+            <div
+              key={m.id}
+              className={cn("flex flex-col gap-1", isPatient ? "items-start" : "items-end")}
+            >
               <div
                 className={cn(
                   "group max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-sm",
@@ -232,6 +238,7 @@ function Thread({ conv, tz }: { conv: ConversationWithDetails; tz: string }) {
                   {formatInTimeZone(m.createdAt, tz, "HH:mm")}
                 </p>
               </div>
+              {trace && trace.length > 0 && <ToolTraceDetail trace={trace} />}
             </div>
           );
         })}
@@ -244,5 +251,115 @@ function Thread({ conv, tz }: { conv: ConversationWithDetails; tz: string }) {
       />
 
     </>
+  );
+}
+
+type ToolCall = { name: string; input: unknown; result: unknown };
+
+/**
+ * Pull the tool trace out of Message.metadata if it looks right. Returns
+ * null when the message wasn't produced by orchestrate (e.g. manual reply
+ * has metadata.source = "manual" instead).
+ */
+function readToolTrace(metadata: unknown): ToolCall[] | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  const trace = (metadata as { toolTrace?: unknown }).toolTrace;
+  if (!Array.isArray(trace)) return null;
+  return trace as ToolCall[];
+}
+
+function ToolTraceDetail({ trace }: { trace: ToolCall[] }) {
+  return (
+    <details className="max-w-[75%] rounded-xl border border-[color:var(--color-ink-100)] bg-white/80 px-3 py-2 text-[11px] text-[color:var(--color-ink-600)] shadow-[var(--shadow-xs)]">
+      <summary className="cursor-pointer select-none font-semibold uppercase tracking-wider text-[color:var(--color-ink-500)] outline-none">
+        Detalle técnico · {trace.length}{" "}
+        {trace.length === 1 ? "herramienta usada" : "herramientas usadas"}
+      </summary>
+      <ol className="mt-2 space-y-2">
+        {trace.map((call, i) => (
+          <li
+            key={i}
+            className="rounded-lg border border-[color:var(--color-ink-100)] bg-[color:var(--color-surface-1)] p-2"
+          >
+            <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-brand-700)]">
+              {i + 1}. {call.name}
+            </p>
+            <p className="mt-1 text-[10px] text-[color:var(--color-ink-500)]">input</p>
+            <pre className="overflow-auto rounded bg-white px-2 py-1 font-mono text-[10px] text-[color:var(--color-ink-800)] ring-1 ring-[color:var(--color-ink-100)]">
+              {safeStringify(call.input)}
+            </pre>
+            <p className="mt-1 text-[10px] text-[color:var(--color-ink-500)]">result</p>
+            <pre className="overflow-auto rounded bg-white px-2 py-1 font-mono text-[10px] text-[color:var(--color-ink-800)] ring-1 ring-[color:var(--color-ink-100)]">
+              {safeStringify(call.result)}
+            </pre>
+          </li>
+        ))}
+      </ol>
+    </details>
+  );
+}
+
+function safeStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+}
+
+type HandoffWithUser = ConversationWithDetails["handoffs"][number];
+
+/**
+ * Compact lifecycle bar above the message list. Renders newest first so an
+ * open handoff is always on top. Resolved entries show who resolved them
+ * (name → email → "—") and when. Reason text is truncated server-side at
+ * 280 chars by the escalate_to_human tool, so we render it inline.
+ */
+function HandoffHistory({ handoffs, tz }: { handoffs: HandoffWithUser[]; tz: string }) {
+  return (
+    <div className="space-y-2 border-b border-[color:var(--color-ink-100)] bg-white/70 p-3">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
+        Historial de escaladas
+      </p>
+      <ul className="space-y-1.5">
+        {handoffs.map((h) => {
+          const isOpen = h.status === "OPEN" || h.status === "IN_PROGRESS";
+          const actor = h.user?.name ?? h.user?.email ?? "—";
+          return (
+            <li
+              key={h.id}
+              className={`flex items-start gap-2 rounded-xl px-3 py-2 text-xs ring-1 ${
+                isOpen
+                  ? "bg-amber-50 text-amber-900 ring-amber-200/70"
+                  : "bg-emerald-50 text-emerald-900 ring-emerald-200/70"
+              }`}
+            >
+              {isOpen ? (
+                <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+              ) : (
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">
+                  {isOpen ? "Abierta" : "Resuelta"} ·{" "}
+                  <span className="font-normal">{h.reason}</span>
+                </p>
+                <p className="mt-0.5 text-[10px] opacity-80">
+                  Abierta {formatInTimeZone(h.openedAt, tz, "dd/MM/yyyy HH:mm")}
+                  {h.resolvedAt && (
+                    <>
+                      {" · "}
+                      Resuelta {formatInTimeZone(h.resolvedAt, tz, "dd/MM/yyyy HH:mm")}
+                      {" por "}
+                      <span className="font-semibold">{actor}</span>
+                    </>
+                  )}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

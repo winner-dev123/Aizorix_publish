@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CalendarDays, Clock, Plus } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
@@ -64,8 +65,10 @@ export default async function AgendaPage() {
               {appointments.length} citas · zona {tz}
             </p>
           </div>
-          <Button variant="primary" size="sm">
-            <Plus /> Nueva cita
+          <Button asChild variant="primary" size="sm">
+            <Link href="/app/agenda/new">
+              <Plus /> Nueva cita
+            </Link>
           </Button>
         </CardHeader>
         <CardContent className="overflow-x-auto pb-6">

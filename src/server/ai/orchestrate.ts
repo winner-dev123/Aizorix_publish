@@ -22,6 +22,22 @@ export async function orchestrate(
   input: OrchestrateInput,
   client: LLMClient = getLLMClient(),
 ): Promise<OrchestratorEnvelope> {
+  try {
+    return await orchestrateInner(input, client);
+  } catch (err) {
+    // Track failures so /api/metrics shows a non-zero `outcome="error"` line
+    // when something is breaking. The webhook route already counts the 500
+    // at the HTTP layer; this catches errors that may also originate from
+    // /api/chat or future internal callers.
+    incr("aizorix_orchestrate_runs_total", { outcome: "error" });
+    throw err;
+  }
+}
+
+async function orchestrateInner(
+  input: OrchestrateInput,
+  client: LLMClient,
+): Promise<OrchestratorEnvelope> {
   const now = input.now ?? new Date();
   const channel = input.channel ?? "WHATSAPP";
 
@@ -106,6 +122,7 @@ export async function orchestrate(
     externalChatId: input.externalChatId,
     patientId: patient?.id ?? null,
     patientFirstName: patient?.firstName ?? input.fromName ?? null,
+    patientNotes: patient?.notes ?? null,
     memories,
     nowISO: now.toISOString(),
   });
@@ -161,6 +178,7 @@ export async function orchestrate(
 
     for (const call of response.toolCalls) {
       toolNamesInvoked.push(call.name);
+      incr("aizorix_ai_tool_calls_total", { tool: call.name });
       const result = await dispatchTool(call.name, call.input, ctx);
       toolTrace.push({ name: call.name, input: call.input, result });
       if (process.env.AI_DEBUG === "1") {

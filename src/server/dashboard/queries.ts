@@ -65,7 +65,14 @@ export async function getConversationTranscript(clinicId: string, conversationId
     include: {
       patient: true,
       messages: { orderBy: { createdAt: "asc" } },
-      handoffs: { orderBy: { openedAt: "desc" } },
+      handoffs: {
+        orderBy: { openedAt: "desc" },
+        include: {
+          // Surface the assignee so the UI can render "Resuelto por X" instead
+          // of an opaque user id.
+          user: { select: { id: true, name: true, email: true } },
+        },
+      },
     },
   });
   return conv;
@@ -647,6 +654,13 @@ export async function getPatientDetail(clinicId: string, patientId: string) {
           messages: { orderBy: { createdAt: "desc" }, take: 1 },
         },
         orderBy: { lastMessageAt: "desc" },
+      },
+      // The bot's accumulated memory about this patient — surfaced in the
+      // client detail page so staff can see what the AI has learned (e.g.
+      // preferred_technician=Diana, allergy=lidocaine).
+      memories: {
+        select: { key: true, value: true, updatedAt: true },
+        orderBy: { updatedAt: "desc" },
       },
     },
   });

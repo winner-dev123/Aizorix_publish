@@ -18,7 +18,12 @@ vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import { prisma } from "../../db";
-import { sendManualReplyAction, setBotPausedAction } from "../appointments";
+import {
+  createAppointmentAction,
+  sendManualReplyAction,
+  setBotPausedAction,
+  updatePatientNotesAction,
+} from "../appointments";
 import { auth } from "@/auth";
 
 const hasDatabase = !!process.env.DATABASE_URL && process.env.RUN_DB_TESTS !== "0";
@@ -200,6 +205,204 @@ describeMaybe("dashboard server actions (DB)", () => {
         select: { botPaused: true },
       });
       expect(c2.botPaused).toBe(false);
+    });
+  });
+
+  // ---------- updatePatientNotesAction ----------
+
+  describe("updatePatientNotesAction", () => {
+    let patientId: string;
+    let otherClinicPatientId: string;
+
+    beforeAll(async () => {
+      const a = await prisma.patient.create({
+        data: {
+          clinicId,
+          firstName: "Notes",
+          lastName: "Tester",
+          phone: "+34611700991",
+          status: "ACTIVE",
+        },
+      });
+      patientId = a.id;
+      const b = await prisma.patient.create({
+        data: {
+          clinicId: otherClinicId,
+          firstName: "Other",
+          lastName: "Clinic",
+          phone: "+34611700992",
+          status: "ACTIVE",
+        },
+      });
+      otherClinicPatientId = b.id;
+    });
+
+    it("returns UNAUTHORIZED when no session", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(auth).mockResolvedValue(null as any);
+      const res = await updatePatientNotesAction(patientId, "hola");
+      expect(res.ok === false && res.error.code).toBe("UNAUTHORIZED");
+    });
+
+    it("returns VALIDATION_ERROR when notes exceed 2000 chars", async () => {
+      mockSession(clinicId);
+      const res = await updatePatientNotesAction(patientId, "x".repeat(2001));
+      expect(res.ok === false && res.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    it("returns NOT_FOUND for cross-tenant patient", async () => {
+      mockSession(clinicId); // session is clinic A
+      const res = await updatePatientNotesAction(otherClinicPatientId, "hola");
+      expect(res.ok === false && res.error.code).toBe("NOT_FOUND");
+    });
+
+    it("trims whitespace and persists", async () => {
+      mockSession(clinicId);
+      const res = await updatePatientNotesAction(patientId, "  Siempre con Diana.  ");
+      expect(res.ok).toBe(true);
+      const after = await prisma.patient.findUniqueOrThrow({ where: { id: patientId } });
+      expect(after.notes).toBe("Siempre con Diana.");
+    });
+
+    it("stores empty/whitespace as NULL (clears the field)", async () => {
+      mockSession(clinicId);
+      // Seed something first so we can confirm the clear.
+      await prisma.patient.update({
+        where: { id: patientId },
+        data: { notes: "anterior" },
+      });
+      const res = await updatePatientNotesAction(patientId, "   \n  ");
+      expect(res.ok).toBe(true);
+      const after = await prisma.patient.findUniqueOrThrow({ where: { id: patientId } });
+      expect(after.notes).toBeNull();
+    });
+  });
+
+  // ---------- createAppointmentAction ----------
+
+  describe("createAppointmentAction", () => {
+    // We need a clinic with real treatments + technicians + business hours, so
+    // we lean on the seeded Bellem clinic. Test rows are tagged with a marker
+    // in notes so cleanup is unambiguous across reruns.
+    const NOTES_MARKER = "TEST_MARKER_CREATE_APPT";
+    let bellemClinicId: string;
+    let bellemPatientId: string;
+    let bellemTreatmentId: string;
+    let bellemTechnicianId: string;
+
+    function futureWeekdayLocal(): string {
+      // 14 days out at 11:00 — far enough that nothing else uses that slot.
+      // 14 days from now starts on the same weekday as today; if today is
+      // Sunday, business hours are closed → bump to +15.
+      const target = new Date();
+      target.setDate(target.getDate() + 14);
+      if (target.getDay() === 0) target.setDate(target.getDate() + 1);
+      target.setHours(11, 0, 0, 0);
+      const y = target.getFullYear();
+      const m = String(target.getMonth() + 1).padStart(2, "0");
+      const d = String(target.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}T11:00`;
+    }
+
+    beforeAll(async () => {
+      const bellem = await prisma.clinic.findUniqueOrThrow({ where: { slug: "bellem" } });
+      bellemClinicId = bellem.id;
+      const limpieza = await prisma.treatment.findFirstOrThrow({
+        where: { clinicId: bellemClinicId, slug: "limpieza-facial" },
+      });
+      bellemTreatmentId = limpieza.id;
+      const diana = await prisma.technician.findFirstOrThrow({
+        where: { clinicId: bellemClinicId, name: "Diana" },
+      });
+      bellemTechnicianId = diana.id;
+      // Reuse a seeded demo patient.
+      const lucia = await prisma.patient.findFirstOrThrow({
+        where: { clinicId: bellemClinicId, phone: "+34611700001" },
+      });
+      bellemPatientId = lucia.id;
+
+      // Pre-cleanup of stale test rows from prior runs.
+      await prisma.appointment.deleteMany({
+        where: { clinicId: bellemClinicId, notes: NOTES_MARKER },
+      });
+    });
+
+    afterAll(async () => {
+      // Post-cleanup so we don't pile up appointments across reruns.
+      await prisma.appointment.deleteMany({
+        where: { clinicId: bellemClinicId, notes: NOTES_MARKER },
+      });
+    });
+
+    it("returns UNAUTHORIZED when no session", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(auth).mockResolvedValue(null as any);
+      const res = await createAppointmentAction({
+        patientId: bellemPatientId,
+        treatmentId: bellemTreatmentId,
+        technicianId: bellemTechnicianId,
+        startsAtLocal: futureWeekdayLocal(),
+      });
+      expect(res.ok === false && res.error.code).toBe("UNAUTHORIZED");
+    });
+
+    it("returns VALIDATION_ERROR on malformed datetime", async () => {
+      mockSession(bellemClinicId);
+      const res = await createAppointmentAction({
+        patientId: bellemPatientId,
+        treatmentId: bellemTreatmentId,
+        technicianId: bellemTechnicianId,
+        startsAtLocal: "tomorrow at 11am",
+      });
+      expect(res.ok === false && res.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    it("happy path: creates a STAFF-tagged appointment", async () => {
+      mockSession(bellemClinicId);
+      const res = await createAppointmentAction({
+        patientId: bellemPatientId,
+        treatmentId: bellemTreatmentId,
+        technicianId: bellemTechnicianId,
+        startsAtLocal: futureWeekdayLocal(),
+        notes: NOTES_MARKER,
+      });
+      expect(res.ok).toBe(true);
+      expect(res.ok === true && res.appointmentId).toBeTruthy();
+
+      const apptId = (res as { appointmentId: string }).appointmentId;
+      const persisted = await prisma.appointment.findUniqueOrThrow({ where: { id: apptId } });
+      expect(persisted.createdBy).toBe("STAFF");
+      expect(persisted.patientId).toBe(bellemPatientId);
+      expect(persisted.notes).toBe(NOTES_MARKER);
+    });
+
+    it("rejects an overlap on the same technician/slot", async () => {
+      mockSession(bellemClinicId);
+      const slot = futureWeekdayLocal();
+
+      // First booking — should succeed.
+      const first = await createAppointmentAction({
+        patientId: bellemPatientId,
+        treatmentId: bellemTreatmentId,
+        technicianId: bellemTechnicianId,
+        startsAtLocal: slot,
+        notes: NOTES_MARKER,
+      });
+      // Either succeeds (first appointment for that slot) or hits OVERLAP
+      // because the previous test already booked it — both are fine.
+      // We just need the SECOND identical call to fail with an overlap.
+      void first;
+
+      const second = await createAppointmentAction({
+        patientId: bellemPatientId,
+        treatmentId: bellemTreatmentId,
+        technicianId: bellemTechnicianId,
+        startsAtLocal: slot,
+        notes: NOTES_MARKER,
+      });
+      expect(second.ok).toBe(false);
+      // bookAppointment surfaces BookingError "OVERLAP" for technician/slot clashes.
+      expect(second.ok === false && second.error.code).toBe("OVERLAP");
     });
   });
 });
