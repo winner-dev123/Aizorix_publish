@@ -19,7 +19,7 @@ The OpenAI account that pays for inference is the **client's**, not the develope
 ## 2. Current state by phase
 
 ### Phase 1 — Booking engine + database
-- **Schema** ([prisma/schema.prisma](prisma/schema.prisma)): 17 domain models — Clinic, User, Patient, Lead, Treatment, TreatmentCategory, Technician, TechnicianTreatment, Appointment, BlockedSlot, ClinicBusinessHours, Conversation, Message, AiMemory, HumanHandoff, ClinicStrategyRule, WhatsAppIntegration — plus NextAuth's Account / Session / VerificationToken (20 total).
+- **Schema** ([prisma/schema.prisma](prisma/schema.prisma)): 16 domain models — Clinic, User, Patient, Treatment, TreatmentCategory, Technician, TechnicianTreatment, Appointment, BlockedSlot, ClinicBusinessHours, Conversation, Message, AiMemory, HumanHandoff, ClinicStrategyRule, WhatsAppIntegration — plus NextAuth's Account / Session / VerificationToken (19 total). The `Lead` model was removed in Phase 6.3 (was unused; orchestrator creates Patient directly).
 - **Pure engines** (no DB):
   - [src/server/availability/slots.ts](src/server/availability/slots.ts) — 30-min slot generator, lead-time aware, midday-break safe.
   - [src/server/availability/business-hours.ts](src/server/availability/business-hours.ts) — DST-aware window expansion in `Europe/Madrid`.
@@ -107,7 +107,7 @@ The OpenAI account that pays for inference is the **client's**, not the develope
 
 ```
 prisma/
-  schema.prisma                            # 17 domain models + 3 NextAuth tables
+  schema.prisma                            # 16 domain models + 3 NextAuth tables
   seed.ts                                  # Bellem demo data (idempotent upsert)
   migrations/
     20260520111357_init/
@@ -353,6 +353,7 @@ Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`.
   - `20260520140000_nextauth` — Account/Session/VerificationToken + nullable `User.name` + `emailVerified` + `image`.
   - `20260520191535_conversation_bot_paused` — adds `Conversation.botPaused`.
   - `20260521015528_clinic_ai_config` — adds `AiTone` enum + `Clinic.aiTone`/`Clinic.aiGuidance`.
+  - `20260521040112_remove_unused_lead_model` — drops the unused `Lead` table + the `leadId` columns on `Conversation` and `HumanHandoff`.
 
 ### Next.js 16 deprecations / breaking
 - `middleware.ts` → **`proxy.ts`** (renamed file at `src/proxy.ts`).
@@ -388,9 +389,8 @@ Phase 1-5 closed out the original §8 punch list. Phase 6 added settings sub-pag
 1. **Real Twilio provisioning** — webhook is wired but no real number is connected. Dev mode uses the stub.
 2. **Real SMTP** — dev mode logs the magic link to the console. For production, fill in `SMTP_HOST`.
 3. **Multi-tenant self-service signup** — Users are inserted server-side by the clinic owner; signup is not self-service. Custom adapter rejects unknown emails.
-4. **Lead model is unused** — schema defines `Lead`, but the orchestrator creates `Patient` directly. Either remove it, or migrate the new-lead step to use it.
-5. **Sub-pages under settings** — `/app/settings/clinic` (name/timezone/locale/WhatsApp/lead minutes/slot granularity), `/app/settings/hours` (per-weekday business hours with split-shift support), and `/app/settings/ai` (tone + free-text guidance, wired into buildSystemPrompt) are live, all OWNER+ADMIN gated. The remaining three cards (Empleados / Módulos / Facturación) still say "Próximamente".
-6. **AI demo doesn't hit the real orchestrator** — `/app/ai` runs a client-side simulation seeded with real treatments. Could be rewired to `POST /api/chat` for an authentic preview, at the cost of real OpenAI tokens per click.
+4. **Sub-pages under settings** — `/app/settings/clinic` (name/timezone/locale/WhatsApp/lead minutes/slot granularity), `/app/settings/hours` (per-weekday business hours with split-shift support), and `/app/settings/ai` (tone + free-text guidance, wired into buildSystemPrompt) are live, all OWNER+ADMIN gated. The remaining three cards (Empleados / Módulos / Facturación) still say "Próximamente".
+5. **AI demo doesn't hit the real orchestrator** — `/app/ai` runs a client-side simulation seeded with real treatments. Could be rewired to `POST /api/chat` for an authentic preview, at the cost of real OpenAI tokens per click.
 
 ---
 
