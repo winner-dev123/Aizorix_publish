@@ -6,6 +6,8 @@ This document captures everything needed to resume work in a fresh session. The 
 
 ---
 
+> **For going live:** see [PRODUCTION_DEPLOY.md](PRODUCTION_DEPLOY.md) — covers env vars, external service setup (Twilio, SMTP, OpenAI), hosting options, the first-deploy checklist, and known production gaps. This handoff stays focused on dev + code state.
+
 ## 1. Project summary
 
 Aizorix is a multi-tenant AI-powered receptionist for aesthetic clinics. It replaces an n8n + Google Sheets prototype with a typed, transactional system. The first tenant is **Clínica Estética Bellem** (Madrid). Patients message a WhatsApp number; an LLM with tool access manages information, bookings, reschedules, cancellations, and human escalation in Spanish. Staff supervise through a dashboard, can manually reply, can pause the bot per conversation, and resolve escalations explicitly.
