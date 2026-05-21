@@ -92,14 +92,14 @@ export function AiDemo({
   clinicName: string;
   treatments: DemoTreatment[];
 }) {
-  const initialAi = useMemo<Msg>(
-    () => ({
-      from: "ai",
-      text: `¡Hola! 👋 Bienvenido/a a ${clinicName}. Soy la asistente virtual de la clínica. ¿En qué puedo ayudarte hoy?`,
-      at: Date.now(),
-    }),
-    [clinicName],
-  );
+  // useState lazy init runs exactly once at mount — escapes the React
+  // purity rule that flags Date.now() called during render. The greeting
+  // freezes at mount-time and stays stable for the life of the component.
+  const [initialAi] = useState<Msg>(() => ({
+    from: "ai",
+    text: `¡Hola! 👋 Bienvenido/a a ${clinicName}. Soy la asistente virtual de la clínica. ¿En qué puedo ayudarte hoy?`,
+    at: Date.now(),
+  }));
 
   const [messages, setMessages] = useState<Msg[]>([initialAi]);
   const [lead, setLead] = useState<CapturedLead>({});

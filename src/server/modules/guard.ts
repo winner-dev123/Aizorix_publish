@@ -24,6 +24,8 @@ export async function assertModuleActive(clinicId: string, key: ModuleKey): Prom
   }
   const active = clinic.activeModules.filter(isKnownModule);
   if (!active.includes(key)) {
-    redirect("/app/settings/modulos");
+    // Pass the disabled key so the settings page can explain WHY the user
+    // landed there (banner above the form).
+    redirect(`/app/settings/modulos?disabled=${encodeURIComponent(key)}`);
   }
 }

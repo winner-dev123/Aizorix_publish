@@ -6,6 +6,7 @@ import {
   isWithinBusinessHours,
   resolveWindowsForRange,
 } from "../availability/business-hours";
+import { withBookingRetry } from "./retry";
 
 export type BookAppointmentArgs = {
   clinicId: string;
@@ -45,7 +46,8 @@ export async function bookAppointment(args: BookAppointmentArgs) {
     now = new Date(),
   } = args;
 
-  return prisma.$transaction(
+  return withBookingRetry(
+    () => prisma.$transaction(
     async (tx) => {
       const clinic = await tx.clinic.findUnique({ where: { id: clinicId } });
       if (!clinic) throw new DomainError("CLINIC_NOT_FOUND", "Clinic not found");
@@ -162,5 +164,7 @@ export async function bookAppointment(args: BookAppointmentArgs) {
       });
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+  ),
+  { label: "book" },
   );
 }

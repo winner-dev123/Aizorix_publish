@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "verify": "npm run typecheck && npm run lint && npm test",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:migrate": "prisma migrate dev",

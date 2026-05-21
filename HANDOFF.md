@@ -248,7 +248,7 @@ npx prisma migrate deploy          # apply all migrations
 npx prisma generate
 npm run db:seed                    # idempotent Bellem seed
 
-npm test                           # 128 tests pass (20 files)
+npm test                           # 139 tests pass (22 files)
 npm run dev                        # http://localhost:3000
 ```
 
@@ -435,7 +435,7 @@ Phase 1-5 closed out the original §8 punch list. Phase 6 added settings sub-pag
 
 ### If continuing in the existing directory
 - `npm run db:up` (idempotent)
-- `npm test` to confirm green (128 tests, runs sequentially)
+- `npm run verify` to confirm green (typecheck + lint + 139 tests, ~13s)
 - `npm run dev` and open [http://localhost:3000/app](http://localhost:3000/app)
 
 ### To sign in (dev)
@@ -499,9 +499,12 @@ For continuity, the principal choices baked in:
 If everything is wired correctly, this is what passes:
 
 ```bash
+npm run verify      # → typecheck + lint + tests (one-liner, bails at first failure)
+
+# or run them individually:
 npm run typecheck   # → clean
 npm run lint        # → clean
-npm test            # → Test Files 20 passed (20) | Tests 128 passed (128)
+npm test            # → Test Files 22 passed (22) | Tests 139 passed (139)
 ```
 
 If any of these fail, that's the first thing to fix before reading further.

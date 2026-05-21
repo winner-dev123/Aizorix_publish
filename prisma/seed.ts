@@ -333,7 +333,12 @@ async function main() {
     });
   }
 
-  // A couple of demo patients so the dashboard isn't empty in dev
+  // ----- Demo data so the dashboard renders with real rows on `npm run db:seed` -----
+  //
+  // Phones use a stable +34611700xxx prefix so we can wipe-and-recreate just our
+  // demo rows without disturbing anything the user has typed in. Idempotent: the
+  // delete cascade below runs before we re-insert. Skipped for "Cliente Demo" so
+  // it stays out of the way.
   await prisma.patient.upsert({
     where: { clinicId_phone: { clinicId: clinic.id, phone: "+34622484214" } },
     update: {},
@@ -347,7 +352,227 @@ async function main() {
     },
   });
 
-  console.log(`✓ Seed complete for clinic: ${clinic.name} (${clinic.id})`);
+  const DEMO_PHONES = [
+    "+34611700001",
+    "+34611700002",
+    "+34611700003",
+    "+34611700004",
+  ];
+
+  // Wipe-then-recreate. Order respects FK constraints.
+  await prisma.message.deleteMany({
+    where: { conversation: { externalChatId: { in: DEMO_PHONES }, clinicId: clinic.id } },
+  });
+  await prisma.humanHandoff.deleteMany({
+    where: { conversation: { externalChatId: { in: DEMO_PHONES }, clinicId: clinic.id } },
+  });
+  await prisma.conversation.deleteMany({
+    where: { externalChatId: { in: DEMO_PHONES }, clinicId: clinic.id },
+  });
+  const existingDemoPatients = await prisma.patient.findMany({
+    where: { clinicId: clinic.id, phone: { in: DEMO_PHONES } },
+    select: { id: true },
+  });
+  if (existingDemoPatients.length) {
+    const ids = existingDemoPatients.map((p) => p.id);
+    await prisma.appointment.deleteMany({ where: { patientId: { in: ids } } });
+    await prisma.aiMemory.deleteMany({ where: { patientId: { in: ids } } });
+    await prisma.patient.deleteMany({ where: { id: { in: ids } } });
+  }
+
+  const now = new Date();
+  const daysAgo = (n: number) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - n);
+    d.setHours(11, 0, 0, 0);
+    return d;
+  };
+  const daysFromNow = (n: number, hour = 11) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() + n);
+    d.setHours(hour, 0, 0, 0);
+    return d;
+  };
+  const addMin = (d: Date, mins: number) => new Date(d.getTime() + mins * 60 * 1000);
+
+  // 4 demo patients across the status enum.
+  const lucia = await prisma.patient.create({
+    data: {
+      clinicId: clinic.id,
+      firstName: "Lucía",
+      lastName: "Fernández",
+      phone: "+34611700001",
+      email: "lucia.fernandez@example.com",
+      status: "ACTIVE",
+      source: "WhatsApp",
+    },
+  });
+  const carmen = await prisma.patient.create({
+    data: {
+      clinicId: clinic.id,
+      firstName: "Carmen",
+      lastName: "Ruiz",
+      phone: "+34611700002",
+      email: "carmen.ruiz@example.com",
+      status: "ACTIVE",
+      source: "Instagram",
+    },
+  });
+  const ana = await prisma.patient.create({
+    data: {
+      clinicId: clinic.id,
+      firstName: "Ana",
+      lastName: "Martínez",
+      phone: "+34611700003",
+      status: "LEAD",
+      source: "WhatsApp",
+    },
+  });
+  const pilar = await prisma.patient.create({
+    data: {
+      clinicId: clinic.id,
+      firstName: "Pilar",
+      lastName: "Sánchez",
+      phone: "+34611700004",
+      status: "INACTIVE",
+      source: "Google",
+    },
+  });
+
+  // Appointments — past (COMPLETED) feed metrics/LTV; future (CONFIRMED) feed agenda + home.
+  const appointmentSpecs: Array<{
+    patientId: string;
+    treatmentSlug: string;
+    techName: string;
+    startsAt: Date;
+    status: "PENDING" | "CONFIRMED" | "COMPLETED";
+  }> = [
+    // Lucía: 2 completed (recurring)
+    { patientId: lucia.id, treatmentSlug: "limpieza-facial", techName: "Diana", startsAt: daysAgo(28), status: "COMPLETED" },
+    { patientId: lucia.id, treatmentSlug: "diseno-cejas", techName: "Diana", startsAt: daysAgo(7), status: "COMPLETED" },
+    // Lucía: upcoming
+    { patientId: lucia.id, treatmentSlug: "limpieza-facial", techName: "Diana", startsAt: daysFromNow(3, 11), status: "CONFIRMED" },
+    // Carmen: VIP — 3 completed across treatments
+    { patientId: carmen.id, treatmentSlug: "dermapen", techName: "Leo", startsAt: daysAgo(40), status: "COMPLETED" },
+    { patientId: carmen.id, treatmentSlug: "radiofrecuencia", techName: "Isis", startsAt: daysAgo(20), status: "COMPLETED" },
+    { patientId: carmen.id, treatmentSlug: "dermapen", techName: "Leo", startsAt: daysAgo(2), status: "COMPLETED" },
+    // Carmen: upcoming
+    { patientId: carmen.id, treatmentSlug: "radiofrecuencia", techName: "Isis", startsAt: daysFromNow(5, 17), status: "CONFIRMED" },
+    // Pilar (INACTIVE): one ancient completed appointment
+    { patientId: pilar.id, treatmentSlug: "depilacion-hilo", techName: "Isis", startsAt: daysAgo(200), status: "COMPLETED" },
+  ];
+
+  for (const spec of appointmentSpecs) {
+    const treatmentId = treatments[spec.treatmentSlug]?.id;
+    const technicianId = technicians[spec.techName]?.id;
+    if (!treatmentId || !technicianId) continue;
+    const treatmentRow = await prisma.treatment.findUnique({
+      where: { id: treatmentId },
+      select: { durationMinutes: true },
+    });
+    const endsAt = addMin(spec.startsAt, treatmentRow?.durationMinutes ?? 60);
+    await prisma.appointment.create({
+      data: {
+        clinicId: clinic.id,
+        patientId: spec.patientId,
+        treatmentId,
+        technicianId,
+        startsAt: spec.startsAt,
+        endsAt,
+        status: spec.status,
+        createdBy: "BOT",
+      },
+    });
+  }
+
+  // Conversations — Lucía's is the happy path (bot booked her in), Ana's escalates.
+  const luciaConv = await prisma.conversation.create({
+    data: {
+      clinicId: clinic.id,
+      patientId: lucia.id,
+      channel: "WHATSAPP",
+      externalChatId: lucia.phone,
+      lastMessageAt: daysAgo(7),
+    },
+  });
+  await prisma.message.createMany({
+    data: [
+      {
+        conversationId: luciaConv.id,
+        role: "USER",
+        content: "Hola, querría reservar una limpieza facial el viernes por la tarde.",
+        createdAt: addMin(daysAgo(8), 0),
+      },
+      {
+        conversationId: luciaConv.id,
+        role: "ASSISTANT",
+        content:
+          "¡Hola Lucía! Tengo hueco el viernes a las 17:30 con Diana para limpieza facial. ¿Te encaja?",
+        createdAt: addMin(daysAgo(8), 1),
+      },
+      {
+        conversationId: luciaConv.id,
+        role: "USER",
+        content: "Perfecto, confírmalo.",
+        createdAt: addMin(daysAgo(8), 2),
+      },
+      {
+        conversationId: luciaConv.id,
+        role: "ASSISTANT",
+        content: "Listo, te he reservado el viernes a las 17:30 con Diana. Te enviaremos un recordatorio el día anterior.",
+        createdAt: addMin(daysAgo(8), 3),
+      },
+    ],
+  });
+
+  const anaConv = await prisma.conversation.create({
+    data: {
+      clinicId: clinic.id,
+      patientId: ana.id,
+      channel: "WHATSAPP",
+      externalChatId: ana.phone,
+      requiresHuman: true,
+      botPaused: true,
+      lastMessageAt: daysAgo(1),
+    },
+  });
+  await prisma.message.createMany({
+    data: [
+      {
+        conversationId: anaConv.id,
+        role: "USER",
+        content: "Buenas, tengo manchas en la cara desde el embarazo. ¿Qué me recomiendan?",
+        createdAt: addMin(daysAgo(1), 0),
+      },
+      {
+        conversationId: anaConv.id,
+        role: "ASSISTANT",
+        content:
+          "Para algo así prefiero pasarte con una compañera del equipo que pueda valorarte personalmente. Te contacta en un rato — ¿te va bien?",
+        createdAt: addMin(daysAgo(1), 1),
+      },
+      {
+        conversationId: anaConv.id,
+        role: "USER",
+        content: "Sí, perfecto. Gracias.",
+        createdAt: addMin(daysAgo(1), 2),
+      },
+    ],
+  });
+  await prisma.humanHandoff.create({
+    data: {
+      clinicId: clinic.id,
+      conversationId: anaConv.id,
+      patientId: ana.id,
+      reason: "Consulta médica (melasma post-embarazo) — fuera del alcance del bot.",
+      status: "OPEN",
+      openedAt: daysAgo(1),
+    },
+  });
+
+  console.log(
+    `✓ Seed complete for clinic: ${clinic.name} (${clinic.id})\n  Demo: 4 patients, ${appointmentSpecs.length} appointments, 2 conversations, 1 handoff.`,
+  );
 }
 
 main()

@@ -58,10 +58,10 @@ describeMaybe("assertModuleActive (DB)", () => {
     expect(redirectMock).toHaveBeenCalledWith("/signin");
   });
 
-  it("redirects to /app/settings/modulos when the module is disabled", async () => {
+  it("redirects to /app/settings/modulos?disabled=<key> when the module is disabled", async () => {
     // "campaigns" is NOT in the seeded activeModules array.
     await assertModuleActive(clinicId, "campaigns");
-    expect(redirectMock).toHaveBeenCalledWith("/app/settings/modulos");
+    expect(redirectMock).toHaveBeenCalledWith("/app/settings/modulos?disabled=campaigns");
   });
 
   it("returns without redirecting when the module is enabled", async () => {
@@ -81,7 +81,7 @@ describeMaybe("assertModuleActive (DB)", () => {
     // metrics removed → redirect
     redirectMock.mockReset();
     await assertModuleActive(clinicId, "metrics");
-    expect(redirectMock).toHaveBeenCalledWith("/app/settings/modulos");
+    expect(redirectMock).toHaveBeenCalledWith("/app/settings/modulos?disabled=metrics");
 
     // restore for any subsequent runs
     await prisma.clinic.update({
