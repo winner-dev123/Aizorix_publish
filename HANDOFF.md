@@ -228,7 +228,7 @@ npx prisma migrate deploy          # apply all migrations
 npx prisma generate
 npm run db:seed                    # idempotent Bellem seed
 
-npm test                           # 62 tests pass (10 files)
+npm test                           # 89 tests pass (13 files)
 npm run dev                        # http://localhost:3000
 ```
 
@@ -301,11 +301,12 @@ Use `npm run db:ids` to refresh — values change every reseed.
 | `webhook.integration.test.ts` | 1 | Full inbound→orchestrate→stub-outbound |
 | `orchestrate.pause.integration.test.ts` | 2 | Phase 5 — paused-bot short-circuit + escalate sets both flags |
 | `queries.integration.test.ts` | 7 | Phase 5 — shape + clinic-scoping for the 6 dashboard query helpers |
-| **TOTAL** | **62** | |
+| `prompt.test.ts` | 7 | Phase 6.2 — tone branches + INSTRUCCIONES ADICIONALES block (pure unit test) |
+| `clinic.actions.integration.test.ts` | 12 | Phase 6 — settings actions: auth gate, role gate, validation, WHATSAPP_TAKEN, overlap detection, replace-all, trim+null |
+| `dashboard.actions.integration.test.ts` | 8 | Phase 5 — manual reply + pause-bot actions: auth gate, clinic scope, NO_CLINIC_NUMBER, metadata.source persistence, paused-flag flips |
+| **TOTAL** | **89** | |
 
-Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`. Vitest loads `.env` via `setupFiles: ["dotenv/config"]`. **`fileParallelism: false`** in [vitest.config.ts](vitest.config.ts) prevents the SSI race that makes parallel integration tests conflict on the same tables — see §7.
-
-**Remaining coverage gap:** the dashboard server actions (`sendManualReplyAction`, `setBotPausedAction`) still don't have tests — they're thin wrappers around `auth()` + Prisma writes and require mocking the session to exercise the happy path. The underlying Prisma logic and the orchestrator pause branch they depend on are covered.
+Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`. Vitest loads `.env` via `setupFiles: ["dotenv/config"]`. **`fileParallelism: false`** in [vitest.config.ts](vitest.config.ts) prevents the SSI race that makes parallel integration tests conflict on the same tables — see §7. Action tests mock `next/cache` because `revalidatePath` requires Next.js's static-generation store, which isn't available in vitest.
 
 ---
 
@@ -380,15 +381,14 @@ Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`.
 
 ## 8. What's NOT yet built
 
-Phase 1-5 closed out the original §8 punch list. Remaining items:
+Phase 1-5 closed out the original §8 punch list. Phase 6 added settings sub-pages and full test coverage of the new + existing action layer. Remaining items:
 
-1. **Tests for the two thin server-action wrappers** (`sendManualReplyAction`, `setBotPausedAction`) — every other Phase 5 path is covered by integration tests added at the end of this session. These two would need `auth()` mocking.
-2. **Real Twilio provisioning** — webhook is wired but no real number is connected. Dev mode uses the stub.
-3. **Real SMTP** — dev mode logs the magic link to the console. For production, fill in `SMTP_HOST`.
-4. **Multi-tenant self-service signup** — Users are inserted server-side by the clinic owner; signup is not self-service. Custom adapter rejects unknown emails.
-5. **Lead model is unused** — schema defines `Lead`, but the orchestrator creates `Patient` directly. Either remove it, or migrate the new-lead step to use it.
-6. **Sub-pages under settings** — `/app/settings/clinic` (name/timezone/locale/WhatsApp/lead minutes/slot granularity), `/app/settings/hours` (per-weekday business hours with split-shift support), and `/app/settings/ai` (tone + free-text guidance, wired into buildSystemPrompt) are live, all OWNER+ADMIN gated. The remaining three cards (Empleados / Módulos / Facturación) still say "Próximamente".
-7. **AI demo doesn't hit the real orchestrator** — `/app/ai` runs a client-side simulation seeded with real treatments. Could be rewired to `POST /api/chat` for an authentic preview, at the cost of real OpenAI tokens per click.
+1. **Real Twilio provisioning** — webhook is wired but no real number is connected. Dev mode uses the stub.
+2. **Real SMTP** — dev mode logs the magic link to the console. For production, fill in `SMTP_HOST`.
+3. **Multi-tenant self-service signup** — Users are inserted server-side by the clinic owner; signup is not self-service. Custom adapter rejects unknown emails.
+4. **Lead model is unused** — schema defines `Lead`, but the orchestrator creates `Patient` directly. Either remove it, or migrate the new-lead step to use it.
+5. **Sub-pages under settings** — `/app/settings/clinic` (name/timezone/locale/WhatsApp/lead minutes/slot granularity), `/app/settings/hours` (per-weekday business hours with split-shift support), and `/app/settings/ai` (tone + free-text guidance, wired into buildSystemPrompt) are live, all OWNER+ADMIN gated. The remaining three cards (Empleados / Módulos / Facturación) still say "Próximamente".
+6. **AI demo doesn't hit the real orchestrator** — `/app/ai` runs a client-side simulation seeded with real treatments. Could be rewired to `POST /api/chat` for an authentic preview, at the cost of real OpenAI tokens per click.
 
 ---
 
@@ -400,11 +400,11 @@ Phase 1-5 closed out the original §8 punch list. Remaining items:
 3. `npm run db:up`
 4. `npx prisma migrate deploy && npx prisma generate`
 5. `npm run db:seed`
-6. `npm test` — expect **62 / 62 passing**
+6. `npm test` — expect **89 / 89 passing**
 
 ### If continuing in the existing directory
 - `npm run db:up` (idempotent)
-- `npm test` to confirm green (62 tests, runs sequentially)
+- `npm test` to confirm green (89 tests, runs sequentially)
 - `npm run dev` and open [http://localhost:3000/app](http://localhost:3000/app)
 
 ### To sign in (dev)
@@ -470,7 +470,7 @@ If everything is wired correctly, this is what passes:
 ```bash
 npm run typecheck   # → clean
 npm run lint        # → clean
-npm test            # → Test Files 10 passed (10) | Tests 62 passed (62)
+npm test            # → Test Files 13 passed (13) | Tests 89 passed (89)
 ```
 
 If any of these fail, that's the first thing to fix before reading further.
