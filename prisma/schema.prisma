@@ -92,6 +92,13 @@ enum AiTone {
   NEUTRAL
 }
 
+enum ClinicPlan {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
 // ============================================================
 //  Tenancy
 // ============================================================
@@ -113,6 +120,13 @@ model Clinic {
   // a free-text "INSTRUCCIONES ADICIONALES" block.
   aiTone     AiTone   @default(NEUTRAL)
   aiGuidance String?
+  // Module feature toggles (Phase 6.9). Stored as an array of stable
+  // string keys defined in src/server/actions/module-catalogue.ts.
+  // Defaults to all modules enabled.
+  activeModules String[] @default(["pipeline", "campaigns", "metrics", "ai-demo", "agenda"])
+  // Subscription plan tier (Phase 6.10). Not self-service — updated by
+  // the platform owner in the DB; the dashboard displays it read-only.
+  plan ClinicPlan @default(PRO)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

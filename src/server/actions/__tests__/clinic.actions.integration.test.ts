@@ -17,6 +17,7 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import { prisma } from "../../db";
 import {
+  updateActiveModulesAction,
   updateAiConfigAction,
   updateBusinessHoursAction,
   updateClinicAction,
@@ -232,6 +233,45 @@ describeMaybe("settings server actions (DB)", () => {
       const after = await prisma.clinic.findUniqueOrThrow({ where: { id: clinicId } });
       expect(after.aiTone).toBe("CASUAL");
       expect(after.aiGuidance).toBe("Pide DNI siempre.");
+    });
+  });
+
+  // ---------- updateActiveModulesAction ----------
+
+  describe("updateActiveModulesAction", () => {
+    it("returns FORBIDDEN for RECEPTIONIST/STAFF roles", async () => {
+      mockSession(clinicId, "STAFF");
+      const res = await updateActiveModulesAction(["pipeline"]);
+      expect(res.ok === false && res.error.code).toBe("FORBIDDEN");
+    });
+
+    it("replaces the array of active modules", async () => {
+      mockSession(clinicId, "OWNER");
+      const res = await updateActiveModulesAction(["pipeline", "metrics"]);
+      expect(res.ok).toBe(true);
+      const after = await prisma.clinic.findUniqueOrThrow({ where: { id: clinicId } });
+      expect(after.activeModules.sort()).toEqual(["metrics", "pipeline"]);
+    });
+
+    it("filters unknown keys and collapses duplicates", async () => {
+      mockSession(clinicId, "OWNER");
+      const res = await updateActiveModulesAction([
+        "pipeline",
+        "pipeline",
+        "metrics",
+        "made-up-key",
+      ]);
+      expect(res.ok).toBe(true);
+      const after = await prisma.clinic.findUniqueOrThrow({ where: { id: clinicId } });
+      expect(after.activeModules.sort()).toEqual(["metrics", "pipeline"]);
+    });
+
+    it("accepts an empty array (clinic has all modules disabled)", async () => {
+      mockSession(clinicId, "OWNER");
+      const res = await updateActiveModulesAction([]);
+      expect(res.ok).toBe(true);
+      const after = await prisma.clinic.findUniqueOrThrow({ where: { id: clinicId } });
+      expect(after.activeModules).toEqual([]);
     });
   });
 });

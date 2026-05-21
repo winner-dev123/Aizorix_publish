@@ -136,6 +136,8 @@ src/
       settings/hours/page.tsx              # Live (Phase 6.1)
       settings/ai/page.tsx                 # Live (Phase 6.2)
       settings/staff/page.tsx              # Live (Phase 6.4)
+      settings/modulos/page.tsx            # Live (Phase 6.9)
+      settings/facturacion/page.tsx        # Live (Phase 6.10 — read-only)
       ai/page.tsx                          # Live (Phase 6.5 — modo simulado/real toggle)
     api/
       auth/[...nextauth]/route.ts
@@ -167,8 +169,12 @@ src/
       client.ts, stub.ts, twilio.ts, index.ts
     actions/
       appointments.ts                      # 5 actions (incl. sendManualReply, setBotPaused)
-      clinic.ts                            # 3 actions: updateClinic, updateBusinessHours, updateAiConfig
+      clinic.ts                            # 4 actions: updateClinic, updateBusinessHours, updateAiConfig, updateActiveModules
+      clinic-options.ts                    # Plain (non-"use server") constants for forms
+      module-catalogue.ts                  # Catalogue of feature modules
+      plan-catalogue.ts                    # Plan tier metadata for /app/settings/facturacion
       staff.ts                             # 3 actions: invite, setActive, setRole
+      staff-options.ts                     # Plain (non-"use server") STAFF_ROLE_OPTIONS
       ai-demo.ts                           # 2 actions: runDemoTurn, clearDemoConversation
     dashboard/
       queries.ts                           # 12 shared Prisma queries (clinic-scoped)
@@ -242,7 +248,7 @@ npx prisma migrate deploy          # apply all migrations
 npx prisma generate
 npm run db:seed                    # idempotent Bellem seed
 
-npm test                           # 124 tests pass (20 files)
+npm test                           # 128 tests pass (20 files)
 npm run dev                        # http://localhost:3000
 ```
 
@@ -326,7 +332,8 @@ Use `npm run db:ids` to refresh — values change every reseed.
 | `webhook/__tests__/rate-limit.test.ts` | 2 | Phase 6.6 — verifies limiter is actually wired into the WhatsApp webhook (429 after capacity, per-sender isolation) |
 | `metrics.test.ts` | 5 | Phase 6.8 — counter registry: increment, label-bucketing, HELP+TYPE preamble, label-order canonicalization, escaping |
 | `metrics/__tests__/route.test.ts` | 4 | Phase 6.8 — /api/metrics: Prom format, METRICS_AUTH_TOKEN gating (404 when missing/wrong, 200 with correct bearer) |
-| **TOTAL** | **124** | |
+| `clinic.actions` (modules block) | 4 | Phase 6.9 — updateActiveModulesAction: role gate, replace-all, unknown-key filter + dedup, empty array allowed |
+| **TOTAL** | **128** | |
 
 Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`. Vitest loads `.env` via `setupFiles: ["dotenv/config"]`. **`fileParallelism: false`** in [vitest.config.ts](vitest.config.ts) prevents the SSI race that makes parallel integration tests conflict on the same tables — see §7. Action tests mock `next/cache` because `revalidatePath` requires Next.js's static-generation store, which isn't available in vitest.
 
@@ -374,6 +381,8 @@ Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`.
   - `20260520191535_conversation_bot_paused` — adds `Conversation.botPaused`.
   - `20260521015528_clinic_ai_config` — adds `AiTone` enum + `Clinic.aiTone`/`Clinic.aiGuidance`.
   - `20260521040112_remove_unused_lead_model` — drops the unused `Lead` table + the `leadId` columns on `Conversation` and `HumanHandoff`.
+  - `20260521132154_clinic_active_modules` — adds `Clinic.activeModules String[]`.
+  - `20260521133113_clinic_plan` — adds `ClinicPlan` enum + `Clinic.plan` (default PRO).
 
 ### Next.js 16 deprecations / breaking
 - `middleware.ts` → **`proxy.ts`** (renamed file at `src/proxy.ts`).
@@ -409,7 +418,7 @@ Phase 1-5 closed out the original §8 punch list. Phase 6 added settings sub-pag
 1. **Real Twilio provisioning** — webhook is wired but no real number is connected. Dev mode uses the stub.
 2. **Real SMTP** — dev mode logs the magic link to the console. For production, fill in `SMTP_HOST`.
 3. **Multi-tenant self-service signup** — Users are inserted server-side by the clinic owner; signup is not self-service. Custom adapter rejects unknown emails.
-4. **Sub-pages under settings** — `/app/settings/clinic`, `/app/settings/hours`, `/app/settings/ai`, and `/app/settings/staff` (invite/role/active with magic-link email on creation, SELF_LOCKOUT + LAST_OWNER guards) are live, all OWNER+ADMIN gated. The remaining two cards (Módulos / Facturación) still say "Próximamente".
+4. **Sub-pages under settings** — all five are live: `/app/settings/clinic`, `/app/settings/hours`, `/app/settings/ai`, `/app/settings/staff`, `/app/settings/modulos` (feature-toggle checkbox grid, persisted to `Clinic.activeModules` — does NOT yet hide sidebar entries; that's a future phase), and `/app/settings/facturacion` (read-only plan tier + features + billing-contact CTA; plan changes are not self-service — platform owner updates `Clinic.plan` directly). All OWNER+ADMIN gated.
 5. **Módulos contratados** and **Facturación** settings cards — still "Próximamente" because both need product/business decisions (what's a module? what's the pricing model?) before they can be coded.
 
 ---
@@ -426,7 +435,7 @@ Phase 1-5 closed out the original §8 punch list. Phase 6 added settings sub-pag
 
 ### If continuing in the existing directory
 - `npm run db:up` (idempotent)
-- `npm test` to confirm green (124 tests, runs sequentially)
+- `npm test` to confirm green (128 tests, runs sequentially)
 - `npm run dev` and open [http://localhost:3000/app](http://localhost:3000/app)
 
 ### To sign in (dev)
@@ -492,7 +501,7 @@ If everything is wired correctly, this is what passes:
 ```bash
 npm run typecheck   # → clean
 npm run lint        # → clean
-npm test            # → Test Files 20 passed (20) | Tests 124 passed (124)
+npm test            # → Test Files 20 passed (20) | Tests 128 passed (128)
 ```
 
 If any of these fail, that's the first thing to fix before reading further.

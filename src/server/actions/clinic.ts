@@ -9,6 +9,7 @@ import {
   CLINIC_LOCALE_OPTIONS,
   CLINIC_TIMEZONE_OPTIONS,
 } from "./clinic-options";
+import { MODULE_KEYS, isKnownModule } from "./module-catalogue";
 
 type ActionResult =
   | { ok: true }
@@ -204,5 +205,52 @@ export async function updateAiConfigAction(input: AiConfigInput): Promise<Action
 
   revalidatePath("/app/settings");
   revalidatePath("/app/settings/ai");
+  return { ok: true };
+}
+
+const modulesSchema = z
+  .array(z.string())
+  .max(MODULE_KEYS.length)
+  .transform((arr) => Array.from(new Set(arr.filter(isKnownModule))));
+
+export type UpdateActiveModulesInput = z.input<typeof modulesSchema>;
+
+/**
+ * Replace the clinic's active-module set with the provided list. Unknown
+ * keys are filtered out (defends against stale forms or hand-crafted
+ * payloads); duplicates are collapsed. OWNER + ADMIN only.
+ *
+ * For v1 the toggles are persistence-only — they don't yet gate behavior
+ * in the sidebar or pages. Future phases can read the array and hide nav
+ * entries / 404 disabled routes; the data model is in place.
+ */
+export async function updateActiveModulesAction(
+  input: UpdateActiveModulesInput,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: { code: "UNAUTHORIZED", message: "No session" } };
+  if (session.user.role !== "OWNER" && session.user.role !== "ADMIN") {
+    return { ok: false, error: { code: "FORBIDDEN", message: "No tienes permisos" } };
+  }
+
+  const parsed = modulesSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: {
+        code: "VALIDATION_ERROR",
+        message: parsed.error.issues[0]?.message ?? "Datos inválidos",
+      },
+    };
+  }
+
+  await prisma.clinic.update({
+    where: { id: session.user.clinicId },
+    data: { activeModules: parsed.data },
+  });
+
+  revalidatePath("/app/settings");
+  revalidatePath("/app/settings/modulos");
+  revalidatePath("/app");
   return { ok: true };
 }

@@ -55,14 +55,14 @@ const SECTIONS = [
     title: "Módulos contratados",
     desc: "Activa o desactiva módulos según necesites.",
     color: "from-sky-500/15 to-sky-500/5",
-    href: null,
+    href: "/app/settings/modulos" as const,
   },
   {
     icon: CreditCard,
     title: "Facturación",
-    desc: "Plan, método de pago y facturas emitidas.",
+    desc: "Plan actual y contacto para cambios.",
     color: "from-rose-500/15 to-rose-500/5",
-    href: null,
+    href: "/app/settings/facturacion" as const,
   },
 ];
 
@@ -148,18 +148,18 @@ export default async function SettingsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {SECTIONS.map((s) => {
-          const card = (
+        {SECTIONS.map((s) => (
+          <Link key={s.title} href={s.href} className="block">
             <Card
-              className={`relative overflow-hidden bg-gradient-to-br ${s.color} card-hover ${s.href ? "" : "opacity-70"}`}
+              className={`relative overflow-hidden bg-gradient-to-br ${s.color} card-hover`}
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[color:var(--color-ink-900)] shadow-[var(--shadow-sm)]">
                     <s.icon className="h-5 w-5" />
                   </div>
-                  <Button variant="ghost" size="sm" disabled={!s.href}>
-                    {s.href ? "Configurar" : "Próximamente"} <ArrowRight />
+                  <Button variant="ghost" size="sm">
+                    Configurar <ArrowRight />
                   </Button>
                 </div>
                 <h3 className="mt-5 text-lg font-bold tracking-tight text-[color:var(--color-ink-900)]">
@@ -168,15 +168,8 @@ export default async function SettingsPage() {
                 <p className="mt-1 text-sm text-[color:var(--color-ink-600)]">{s.desc}</p>
               </CardContent>
             </Card>
-          );
-          return s.href ? (
-            <Link key={s.title} href={s.href} className="block">
-              {card}
-            </Link>
-          ) : (
-            <div key={s.title}>{card}</div>
-          );
-        })}
+          </Link>
+        ))}
       </div>
     </div>
   );
