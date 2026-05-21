@@ -57,7 +57,19 @@ const GROUPS: NavItem["group"][] = [
   "Sistema",
 ];
 
-export function CrmSidebar({ needsAttentionCount = 0 }: { needsAttentionCount?: number }) {
+export function CrmSidebar({
+  needsAttentionCount = 0,
+  clinicName = "Aizorix",
+  treatmentCount = 0,
+  userCount = 0,
+  technicianCount = 0,
+}: {
+  needsAttentionCount?: number;
+  clinicName?: string;
+  treatmentCount?: number;
+  userCount?: number;
+  technicianCount?: number;
+}) {
   const pathname = usePathname();
   const nav = buildNav(needsAttentionCount);
 
@@ -139,19 +151,23 @@ export function CrmSidebar({ needsAttentionCount = 0 }: { needsAttentionCount?: 
           />
           <div className="relative">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[color:var(--color-coral-500)]">
-              <Sparkles className="h-3.5 w-3.5" /> Plan Pro
+              <Sparkles className="h-3.5 w-3.5" /> Tu clínica
             </div>
-            <p className="mt-2 text-sm font-bold text-[color:var(--color-ink-900)]">
-              5 módulos activos
+            <p className="mt-2 max-w-[180px] truncate text-sm font-bold text-[color:var(--color-ink-900)]">
+              {clinicName}
             </p>
             <p className="text-xs text-[color:var(--color-ink-600)]">
-              1 sede · 4 empleados
+              {treatmentCount} {treatmentCount === 1 ? "tratamiento" : "tratamientos"} ·{" "}
+              {technicianCount} {technicianCount === 1 ? "técnico/a" : "técnicos"}
+            </p>
+            <p className="text-xs text-[color:var(--color-ink-600)]">
+              {userCount} {userCount === 1 ? "empleado/a activo/a" : "empleados activos"}
             </p>
             <Link
               href="/app/settings"
               className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[color:var(--color-coral-500)] transition hover:text-[color:var(--color-coral-400)]"
             >
-              Gestionar plan <ArrowUpRight className="h-3 w-3" />
+              Ajustes <ArrowUpRight className="h-3 w-3" />
             </Link>
           </div>
         </div>

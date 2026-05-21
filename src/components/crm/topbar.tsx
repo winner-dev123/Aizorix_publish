@@ -22,13 +22,35 @@ const TITLES: Record<string, { title: string; sub?: string }> = {
   "/app/settings": { title: "Configuración", sub: "Workspace, equipo y facturación" },
 };
 
-export function CrmTopbar() {
+const ROLE_LABEL: Record<string, string> = {
+  OWNER: "Propietario/a",
+  ADMIN: "Admin",
+  RECEPTIONIST: "Recepción",
+  STAFF: "Personal",
+};
+
+function initials(name: string): string {
+  const parts = name.split(/[\s@.]+/).filter(Boolean);
+  return (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
+}
+
+export function CrmTopbar({
+  clinicName,
+  userRole,
+  userLabel,
+}: {
+  clinicName: string;
+  userRole: string;
+  userLabel: string;
+}) {
   const pathname = usePathname();
   const fallback =
     pathname.startsWith("/app/clients/")
       ? { title: "Ficha de cliente", sub: "Datos, historial y conversaciones" }
       : { title: "Aizorix CRM", sub: undefined };
   const meta = TITLES[pathname] ?? fallback;
+  const accountInitials = (initials(clinicName) || "AI").toUpperCase();
+  const roleSub = ROLE_LABEL[userRole] ?? "Equipo";
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-[color:var(--color-ink-100)] bg-white/85 px-6 backdrop-blur-xl">
@@ -71,17 +93,18 @@ export function CrmTopbar() {
         <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-[color:var(--color-brand-500)]" />
       </button>
 
-      <div className="ml-1 flex items-center gap-2.5 rounded-full border border-[color:var(--color-ink-100)] bg-white py-1 pl-1 pr-3 shadow-sm transition hover:shadow-md">
+      <div
+        className="ml-1 flex items-center gap-2.5 rounded-full border border-[color:var(--color-ink-100)] bg-white py-1 pl-1 pr-3 shadow-sm transition hover:shadow-md"
+        title={userLabel || undefined}
+      >
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[color:var(--color-brand-300)] to-[color:var(--color-brand-500)] text-xs font-black text-[color:var(--color-ink-900)]">
-          VC
+          {accountInitials}
         </div>
         <div className="hidden md:block">
-          <p className="text-xs font-bold leading-none text-[color:var(--color-ink-900)]">
-            Vanity Center
+          <p className="max-w-[160px] truncate text-xs font-bold leading-none text-[color:var(--color-ink-900)]">
+            {clinicName}
           </p>
-          <p className="mt-0.5 text-[10px] text-[color:var(--color-ink-500)]">
-            Plan Pro
-          </p>
+          <p className="mt-0.5 text-[10px] text-[color:var(--color-ink-500)]">{roleSub}</p>
         </div>
         <ChevronDown className="h-3.5 w-3.5 text-[color:var(--color-ink-400)]" />
       </div>
