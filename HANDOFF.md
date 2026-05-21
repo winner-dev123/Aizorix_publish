@@ -319,6 +319,10 @@ Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`.
   - System prompt forbids `Z` and tells the model to copy `startsAtLocal` verbatim.
 - **Rule of thumb**: never expose two different time representations of the same value to an LLM. Pick one and stick with it.
 
+### Auth.js MissingSecret on a fresh clone (Phase 5)
+- **Symptom**: visiting `/signin` on a newly-cloned repo throws `MissingSecret` because the developer hasn't run `openssl rand -base64 32` yet.
+- **Fix** in [src/auth.config.ts](src/auth.config.ts): if `AUTH_SECRET` is unset *and* `NODE_ENV !== "production"`, fall back to a stable dev-only string and `console.warn` loudly at module-eval time. In production, the secret stays `undefined` so NextAuth still fails correctly. Lets newcomers `git clone && npm run dev` without an extra step, but you should still set a real secret before any real use.
+
 ### Auth.js Nodemailer construction throws on falsy `server` (Phase 5)
 - **Symptom**: every `/app/*` and `/api/*` route 500'd with `AuthError: Nodemailer requires a 'server' configuration`. Manifested as "Compiling /" hanging forever in Turbopack because the error fired at module-eval time during graph construction.
 - **Cause**: `@auth/core/providers/nodemailer.js` does `if (!config.server) throw …` *before* calling our overridden `sendVerificationRequest`. Passing `server: undefined` when `SMTP_HOST` is unset trips the validator.
@@ -345,6 +349,7 @@ Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`.
   - `20260520121500_clinic_whatsapp_number` — adds `Clinic.whatsappNumber`.
   - `20260520140000_nextauth` — Account/Session/VerificationToken + nullable `User.name` + `emailVerified` + `image`.
   - `20260520191535_conversation_bot_paused` — adds `Conversation.botPaused`.
+  - `20260521015528_clinic_ai_config` — adds `AiTone` enum + `Clinic.aiTone`/`Clinic.aiGuidance`.
 
 ### Next.js 16 deprecations / breaking
 - `middleware.ts` → **`proxy.ts`** (renamed file at `src/proxy.ts`).
@@ -382,7 +387,7 @@ Phase 1-5 closed out the original §8 punch list. Remaining items:
 3. **Real SMTP** — dev mode logs the magic link to the console. For production, fill in `SMTP_HOST`.
 4. **Multi-tenant self-service signup** — Users are inserted server-side by the clinic owner; signup is not self-service. Custom adapter rejects unknown emails.
 5. **Lead model is unused** — schema defines `Lead`, but the orchestrator creates `Patient` directly. Either remove it, or migrate the new-lead step to use it.
-6. **Sub-pages under settings** — five nav cards (Datos del negocio / Empleados / IA Receptionista / Módulos / Facturación) link to nothing yet.
+6. **Sub-pages under settings** — `/app/settings/clinic` (name/timezone/locale/WhatsApp/lead minutes/slot granularity), `/app/settings/hours` (per-weekday business hours with split-shift support), and `/app/settings/ai` (tone + free-text guidance, wired into buildSystemPrompt) are live, all OWNER+ADMIN gated. The remaining three cards (Empleados / Módulos / Facturación) still say "Próximamente".
 7. **AI demo doesn't hit the real orchestrator** — `/app/ai` runs a client-side simulation seeded with real treatments. Could be rewired to `POST /api/chat` for an authentic preview, at the cost of real OpenAI tokens per click.
 
 ---

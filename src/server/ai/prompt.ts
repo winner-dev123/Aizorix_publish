@@ -1,12 +1,21 @@
-import type { Clinic } from "@prisma/client";
+import type { AiTone, Clinic } from "@prisma/client";
 
 type PromptContext = {
-  clinic: Pick<Clinic, "name" | "timezone">;
+  clinic: Pick<Clinic, "name" | "timezone"> & {
+    aiTone?: AiTone;
+    aiGuidance?: string | null;
+  };
   externalChatId: string;
   patientId: string | null;
   patientFirstName: string | null;
   memories: { key: string; value: string }[];
   nowISO: string;
+};
+
+const TONE_LINE: Record<AiTone, string> = {
+  FORMAL: "Trata al paciente de usted en todo momento. Mantén un registro formal.",
+  CASUAL: "Trata al paciente de tú. Sé cercano y directo.",
+  NEUTRAL: "Usa un tono cercano pero profesional. Evita los emojis.",
 };
 
 export function buildSystemPrompt(ctx: PromptContext): string {
@@ -16,10 +25,14 @@ export function buildSystemPrompt(ctx: PromptContext): string {
   const patientBlock = ctx.patientId
     ? `Paciente identificado: ${ctx.patientFirstName ?? "(sin nombre)"} (id=${ctx.patientId}, tel=${ctx.externalChatId}).`
     : `Paciente NO identificado todavía. Tel WhatsApp: ${ctx.externalChatId}. Antes de reservar debes llamar a find_or_create_patient con el nombre que te dé el paciente.`;
+  const toneLine = TONE_LINE[ctx.clinic.aiTone ?? "NEUTRAL"];
+  const guidanceBlock = ctx.clinic.aiGuidance?.trim()
+    ? `\n\nINSTRUCCIONES ADICIONALES DE LA CLÍNICA\n${ctx.clinic.aiGuidance.trim()}`
+    : "";
 
   return `Eres Aizorix, la recepcionista virtual de la clínica estética "${ctx.clinic.name}".
-Hablas siempre en español de España, en tono cercano pero profesional. Sin emojis.
-Zona horaria de la clínica: ${ctx.clinic.timezone}. Hora actual: ${ctx.nowISO}.
+Hablas siempre en español de España. ${toneLine}
+Zona horaria de la clínica: ${ctx.clinic.timezone}. Hora actual: ${ctx.nowISO}.${guidanceBlock}
 
 OBJETIVO
 - Resolver consultas de pacientes por WhatsApp: información de tratamientos, reservas, cambios, cancelaciones.

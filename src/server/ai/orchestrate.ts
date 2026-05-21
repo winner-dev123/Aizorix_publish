@@ -95,7 +95,12 @@ export async function orchestrate(
   }
 
   const systemPrompt = buildSystemPrompt({
-    clinic: { name: clinic.name, timezone: clinic.timezone },
+    clinic: {
+      name: clinic.name,
+      timezone: clinic.timezone,
+      aiTone: clinic.aiTone,
+      aiGuidance: clinic.aiGuidance,
+    },
     externalChatId: input.externalChatId,
     patientId: patient?.id ?? null,
     patientFirstName: patient?.firstName ?? input.fromName ?? null,

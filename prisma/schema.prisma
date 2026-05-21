@@ -86,6 +86,12 @@ enum WhatsAppProvider {
   TWILIO
 }
 
+enum AiTone {
+  FORMAL
+  CASUAL
+  NEUTRAL
+}
+
 // ============================================================
 //  Tenancy
 // ============================================================
@@ -102,6 +108,11 @@ model Clinic {
   // Booking policy
   minLeadMinutes      Int @default(120)
   slotGranularityMin  Int @default(30)
+  // AI receptionist config. Edited from /app/settings/ai; consumed by
+  // buildSystemPrompt(). Tone steers de/tú/usted; guidance is appended as
+  // a free-text "INSTRUCCIONES ADICIONALES" block.
+  aiTone     AiTone   @default(NEUTRAL)
+  aiGuidance String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
