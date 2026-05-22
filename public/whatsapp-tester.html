@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WhatsApp webhook tester · Aizorix</title>
+    <style>
+      :root {
+        --bg: #0f0d1a;
+        --panel: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.12);
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --violet: #7c3aed;
+        --violet-2: #a78bfa;
+        --ok: #34d399;
+        --err: #f87171;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        color: var(--text);
+        background: radial-gradient(
+            50% 40% at 20% 10%,
+            rgba(124, 58, 237, 0.25) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            50% 40% at 80% 90%,
+            rgba(56, 189, 248, 0.18) 0%,
+            transparent 60%
+          ),
+          var(--bg);
+        display: grid;
+        place-items: center;
+        padding: 32px;
+      }
+      .shell {
+        width: 100%;
+        max-width: 920px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      @media (max-width: 760px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card {
+        background: var(--panel);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 22px 22px 18px;
+        box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 17px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      h1 .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ok);
+        box-shadow: 0 0 12px var(--ok);
+      }
+      p.lead {
+        margin: 0 0 16px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      label {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin: 12px 0 6px;
+        font-weight: 600;
+      }
+      input,
+      textarea {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-family: inherit;
+        font-size: 14px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        outline: none;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+      }
+      input:focus,
+      textarea:focus {
+        border-color: var(--violet);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25);
+      }
+      textarea {
+        min-height: 90px;
+        resize: vertical;
+      }
+      button {
+        margin-top: 18px;
+        width: 100%;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, var(--violet-2), var(--violet));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
+        box-shadow: 0 10px 28px -10px rgba(124, 58, 237, 0.65);
+      }
+      button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 18px 42px -12px rgba(124, 58, 237, 0.85);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      pre {
+        margin: 0;
+        background: #050409;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
+        font-size: 12px;
+        line-height: 1.55;
+        color: #d1d5db;
+        max-height: 540px;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 10px;
+      }
+      .status.ok {
+        color: var(--ok);
+      }
+      .status.err {
+        color: var(--err);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(124, 58, 237, 0.18);
+        border: 1px solid rgba(167, 139, 250, 0.4);
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #ddd6fe;
+      }
+      .quick {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .quick button {
+        margin: 0;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: 999px;
+        box-shadow: none;
+      }
+      .quick button:hover:not(:disabled) {
+        background: rgba(124, 58, 237, 0.2);
+        border-color: rgba(167, 139, 250, 0.4);
+        color: white;
+        transform: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <!-- ─────── Left: form ─────── -->
+      <section class="card">
+        <h1>
+          <span class="dot"></span> Webhook tester
+          <span class="pill">stub mode</span>
+        </h1>
+        <p class="lead">
+          POST emulado a <code>/api/webhooks/whatsapp</code> en formato Twilio
+          (form-urlencoded). El backend ya bypasea la verificación de firma
+          cuando <code>TWILIO_AUTH_TOKEN</code> no está en el <code>.env</code>.
+        </p>
+
+        <form id="form">
+          <div class="row">
+            <div>
+              <label for="from">From (sender phone, E.164)</label>
+              <input id="from" value="+34611000099" autocomplete="off" />
+            </div>
+            <div>
+              <label for="to">To (clinic WA, E.164)</label>
+              <input id="to" value="+34911000000" autocomplete="off" />
+            </div>
+          </div>
+
+          <label for="name">Profile name</label>
+          <input id="name" value="Lucía Tester" autocomplete="off" />
+
+          <label for="body">Message body</label>
+          <textarea id="body">Hola, ¿qué tratamientos hacéis?</textarea>
+
+          <div class="quick">
+            <button type="button" data-quick="Hola, ¿qué tratamientos hacéis?">
+              Saludo
+            </button>
+            <button
+              type="button"
+              data-quick="Quiero reservar limpieza facial mañana a las 11:00"
+            >
+              Reservar
+            </button>
+            <button type="button" data-quick="¿Cuánto cuesta el Dermapen?">
+              Precio
+            </button>
+            <button
+              type="button"
+              data-quick="Quiero hablar con una persona del equipo"
+            >
+              Escalada
+            </button>
+          </div>
+
+          <button type="submit" id="send">Enviar webhook</button>
+        </form>
+      </section>
+
+      <!-- ─────── Right: response ─────── -->
+      <section class="card">
+        <h1>Respuesta del backend</h1>
+        <p class="lead">
+          Lo que devuelve el endpoint (envelope del orquestrador). El bot
+          también envía la respuesta via el provider configurado — en local,
+          el stub la imprime en la consola del servidor.
+        </p>
+        <div id="status" class="status">Esperando…</div>
+        <pre id="output">// pulsa "Enviar webhook" para empezar</pre>
+      </section>
+    </div>
+
+    <script>
+      const form = document.getElementById("form");
+      const out = document.getElementById("output");
+      const statusEl = document.getElementById("status");
+      const sendBtn = document.getElementById("send");
+
+      document.querySelectorAll(".quick button[data-quick]").forEach((b) => {
+        b.addEventListener("click", () => {
+          document.getElementById("body").value = b.dataset.quick;
+        });
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Twilio sends application/x-www-form-urlencoded with these keys.
+        const from = "whatsapp:" + document.getElementById("from").value.trim();
+        const to = "whatsapp:" + document.getElementById("to").value.trim();
+        const body = document.getElementById("body").value;
+        const name = document.getElementById("name").value;
+        const messageSid =
+          "SM-test-" +
+          Date.now() +
+          "-" +
+          Math.random().toString(36).slice(2, 8);
+
+        const params = new URLSearchParams();
+        params.set("From", from);
+        params.set("To", to);
+        params.set("Body", body);
+        params.set("ProfileName", name);
+        params.set("MessageSid", messageSid);
+
+        statusEl.textContent = "Enviando…";
+        statusEl.className = "status";
+        out.textContent = "";
+        sendBtn.disabled = true;
+        const t0 = performance.now();
+
+        try {
+          const res = await fetch("/api/webhooks/whatsapp", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: params.toString(),
+          });
+          const elapsed = (performance.now() - t0).toFixed(0);
+          const text = await res.text();
+          let parsed;
+          try {
+            parsed = JSON.parse(text);
+          } catch {
+            parsed = text;
+          }
+
+          statusEl.textContent = `HTTP ${res.status} · ${elapsed} ms · MessageSid=${messageSid}`;
+          statusEl.className = res.ok ? "status ok" : "status err";
+          out.textContent =
+            "// POST → /api/webhooks/whatsapp\n" +
+            "// body (form-urlencoded):\n" +
+            params.toString().split("&").join("\n") +
+            "\n\n// response:\n" +
+            (typeof parsed === "string"
+              ? parsed
+              : JSON.stringify(parsed, null, 2));
+        } catch (err) {
+          statusEl.textContent = "Error de red";
+          statusEl.className = "status err";
+          out.textContent =
+            "// fetch failed:\n" + (err && err.message ? err.message : err);
+        } finally {
+          sendBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
