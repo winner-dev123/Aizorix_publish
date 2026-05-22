@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PatientNotesEditor } from "@/components/dashboard/patient-notes-editor";
 import { MemoriesEditor } from "@/components/dashboard/memories-editor";
+import { AppointmentControls } from "@/components/dashboard/appointment-controls";
 import { formatEUR } from "@/lib/utils";
 
 export const revalidate = 30;
@@ -86,13 +87,13 @@ export default async function ClientProfilePage({
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Profile card */}
         <Card className="overflow-hidden lg:col-span-1">
-          <div className="relative h-32 bg-gradient-to-br from-[#fffaeb] via-[#fff5f1] to-[#f5f3ff]">
+          <div className="relative h-32 bg-gradient-to-br from-[#effdf6] via-[#e6f4f1] to-[#f5f3ff]">
             <span
               aria-hidden
               className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full opacity-70 blur-3xl"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(255,138,91,0.45) 0%, transparent 60%)",
+                  "radial-gradient(circle, rgba(13,148,136,0.45) 0%, transparent 60%)",
               }}
             />
             <span
@@ -107,7 +108,7 @@ export default async function ClientProfilePage({
 
           <CardContent className="-mt-12 p-6 pt-0">
             <div className="flex flex-col items-center text-center">
-              <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-[#ffd24a] via-[#f5c842] to-[#ff8a5b] text-3xl font-black text-[color:var(--color-ink-900)] shadow-[0_18px_44px_-16px_rgba(255,138,91,0.55)] ring-4 ring-white">
+              <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-3xl font-black text-[color:var(--color-ink-900)] shadow-[0_18px_44px_-16px_rgba(13,148,136,0.55)] ring-4 ring-white">
                 {initials.toUpperCase() || "?"}
               </div>
               <h2 className="mt-4 text-2xl font-black tracking-tight">{fullName}</h2>
@@ -151,7 +152,7 @@ export default async function ClientProfilePage({
                 <MessageCircle /> Enviar WhatsApp
               </Button>
               <Button asChild variant="outline">
-                <Link href="/app/agenda/new">
+                <Link href={`/app/agenda/new?patientId=${patient.id}`}>
                   <Calendar /> Reservar cita
                 </Link>
               </Button>
@@ -179,30 +180,46 @@ export default async function ClientProfilePage({
                 </p>
               ) : (
                 <ul className="space-y-2.5">
-                  {patient.appointments.map((a) => (
-                    <li
-                      key={a.id}
-                      className="flex items-center gap-3 rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-3.5"
-                    >
-                      <div
-                        className="flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-[0_6px_14px_-6px_rgba(47,136,255,0.45)]"
-                        style={{ background: a.technician.color ?? "#2f88ff" }}
+                  {patient.appointments.map((a) => {
+                    // Only PENDING/CONFIRMED future appointments can be
+                    // moved or cancelled — completed/cancelled/no-show are
+                    // terminal states; rendering the controls would invite
+                    // calls that the booking actions reject anyway.
+                    const isMutable =
+                      (a.status === "PENDING" || a.status === "CONFIRMED") &&
+                      a.startsAt > new Date();
+                    return (
+                      <li
+                        key={a.id}
+                        className="flex items-center gap-3 rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-3.5"
                       >
-                        <Calendar className="h-4 w-4" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-[color:var(--color-ink-900)]">
-                          {a.treatment.name}
-                        </p>
-                        <p className="text-xs text-[color:var(--color-ink-500)]">
-                          {formatInTimeZone(a.startsAt, tz, "dd/MM/yyyy HH:mm")} · {a.technician.name}
-                        </p>
-                      </div>
-                      <Badge variant={APPT_TONE[a.status] ?? "outline"}>
-                        {APPT_LABEL[a.status] ?? a.status}
-                      </Badge>
-                    </li>
-                  ))}
+                        <div
+                          className="flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-[0_6px_14px_-6px_rgba(47,136,255,0.45)]"
+                          style={{ background: a.technician.color ?? "#2f88ff" }}
+                        >
+                          <Calendar className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-[color:var(--color-ink-900)]">
+                            {a.treatment.name}
+                          </p>
+                          <p className="text-xs text-[color:var(--color-ink-500)]">
+                            {formatInTimeZone(a.startsAt, tz, "dd/MM/yyyy HH:mm")} ·{" "}
+                            {a.technician.name}
+                          </p>
+                        </div>
+                        <Badge variant={APPT_TONE[a.status] ?? "outline"}>
+                          {APPT_LABEL[a.status] ?? a.status}
+                        </Badge>
+                        {isMutable && (
+                          <AppointmentControls
+                            appointmentId={a.id}
+                            startsAtLocal={formatInTimeZone(a.startsAt, tz, "yyyy-MM-dd'T'HH:mm")}
+                          />
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </CardContent>

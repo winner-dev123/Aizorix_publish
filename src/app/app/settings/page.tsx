@@ -6,6 +6,7 @@ import {
   Building2,
   Clock,
   CreditCard,
+  ShieldCheck,
   Layers,
   MessageCircle,
   RefreshCw,
@@ -63,6 +64,13 @@ const SECTIONS = [
     desc: "Plan actual y contacto para cambios.",
     color: "from-rose-500/15 to-rose-500/5",
     href: "/app/settings/facturacion" as const,
+  },
+  {
+    icon: ShieldCheck,
+    title: "Registro de acciones",
+    desc: "Quién hizo qué y cuándo (auditoría del equipo).",
+    color: "from-emerald-500/15 to-emerald-500/5",
+    href: "/app/settings/audit" as const,
   },
 ];
 
@@ -123,7 +131,7 @@ export default async function SettingsPage() {
           className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-50 blur-3xl"
           style={{
             background:
-              "radial-gradient(circle, rgba(245,200,66,0.55) 0%, transparent 60%)",
+              "radial-gradient(circle, rgba(0,128,105,0.55) 0%, transparent 60%)",
           }}
         />
         <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

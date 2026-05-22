@@ -85,6 +85,20 @@ The OpenAI account that pays for inference is the **client's**, not the develope
 - **All queries scoped by `clinicId`** — see [src/server/dashboard/queries.ts](src/server/dashboard/queries.ts). New helpers: `getHomeDashboard`, `getPatientDetail`, `getPipelinePatients`, `getCampaignAudienceCounts`, `getMetricsOverview`, `getClinicOverview`.
 - **`/api/chat` production auth-gate** — open in dev (curl-testable), requires session + matching clinicId in production. See [src/app/api/chat/route.ts](src/app/api/chat/route.ts).
 
+### Phase 6 — Settings sub-pages, observability, audit log, polish
+- **All 7 settings sub-pages live** ([src/app/app/settings](src/app/app/settings)): `clinic` (name/tz/locale/WhatsApp/lead minutes/slot granularity), `hours` (per-weekday business hours, split-shift), `ai` (tone + free-text guidance, wired into buildSystemPrompt), `staff` (invite + role + active + **resend magic-link**), `modulos` (feature-toggle checkboxes, persisted to `Clinic.activeModules`, gates sidebar entries and route-level access with `?disabled=<key>` redirect banner), `facturacion` (read-only plan tier + features), `audit` (filterable, paginated, CSV-exportable log of every staff action).
+- **Audit log infrastructure**: new `AuditLog` model + `logAudit()` helper wired into **all 20 mutating actions**. UI at `/app/settings/audit` (filter by action/date, pagination, target identifiers are clickable links to the affected entity), 5-row preview on `/app` home (OWNER+ADMIN only), CSV export at `/api/audit/export.csv?action=…&from=…&to=…`.
+- **Patient + appointment CRUD from the dashboard**: `/app/clients/new`, `/app/clients/[id]/edit`, `/app/agenda/new` (with `?patientId=` prefill from the patient profile). Inline cancel/reschedule controls reused on the patient detail page for future PENDING/CONFIRMED appointments.
+- **AI memory editor**: full CRUD at `/app/clients/[id]` (the patient profile's Memorias card). Staff edits and bot `set_memory` writes share the same `(patientId, key)` unique row — last-write-wins.
+- **Patient notes wired into buildSystemPrompt**: the bot sees `INSTRUCCIONES INTERNAS DEL EQUIPO` block on every turn for identified patients, with instruction not to quote verbatim.
+- **Conversation thread enrichments**: handoff history bar above the message list with "Resuelto por X" attribution, per-assistant-message tool-trace inspector via native `<details>`, manual-reply composer + pause-bot toggle.
+- **Observability stack**: `/api/health` (liveness + DB readiness), `/api/metrics` (Prometheus exposition, bearer-gated, **8 counters** instrumented across orchestrate / webhook / manual reply / rate limit / booking retry / AI tool calls / appointments created / orchestrate errors), `/api/version` (build SHA + env). In-memory rate limiter on the WhatsApp webhook. SSI conflict retry on `bookAppointment`.
+- **List polish**: pagination on `/app/clients` (50/page) and `/app/settings/audit` (50/page). Conversation inbox search (`?q=<name|phone>`). Conversation list filter chips preserve `?q=` across toggles.
+- **Mobile sidebar**: hamburger trigger + slide-out overlay + backdrop on `< md`; sticky column on `md+` (unchanged on desktop). Body-scroll lock when open, click-delegation auto-close on nav.
+- **Operational tooling**: `npm run create:clinic` CLI for bootstrapping new tenants. `npm run verify` shortcut chains typecheck + lint + tests. Enriched seed with 4 demo patients, 8 appointments, 2 conversations, 1 open handoff.
+- **Production docs**: [PRODUCTION_DEPLOY.md](PRODUCTION_DEPLOY.md) covers env vars, external service setup, hosting choices, deploy checklist, known gaps, and rollback.
+- **Lead model removed** (was unused; orchestrator creates Patient directly).
+
 ---
 
 ## 3. Tech stack (concrete)
@@ -248,7 +262,7 @@ npx prisma migrate deploy          # apply all migrations
 npx prisma generate
 npm run db:seed                    # idempotent Bellem seed
 
-npm test                           # 139 tests pass (22 files)
+npm test                           # 189 tests pass (27 files)
 npm run dev                        # http://localhost:3000
 ```
 
@@ -310,30 +324,21 @@ Use `npm run db:ids` to refresh — values change every reseed.
 
 ## 6. Testing
 
-| Suite | Tests | Notes |
+**27 test files / 189 tests / ~13s sequential.** Run with `npm run verify` (typecheck + lint + vitest).
+
+Test surface by area:
+
+| Area | Files | What's covered |
 |---|---|---|
-| `availability.test.ts` | 17 | Pure slot generator |
-| `treatments.test.ts` | 7 | matchTreatment ranking |
-| `technicians.test.ts` | 11 | Assignment ranking |
-| `booking.integration.test.ts` | 6 | Real-DB transactions (overlap, business hours, exclusivity) |
-| `parse-clinic-time.test.ts` | 4 | Local-vs-UTC ISO parsing |
-| `orchestrate.integration.test.ts` | 1 | Scripted LLM mock + real DB |
-| `twilio.test.ts` | 6 | Signature verify + inbound parse |
-| `webhook.integration.test.ts` | 1 | Full inbound→orchestrate→stub-outbound |
-| `orchestrate.pause.integration.test.ts` | 2 | Phase 5 — paused-bot short-circuit + escalate sets both flags |
-| `queries.integration.test.ts` | 7 | Phase 5 — shape + clinic-scoping for the 6 dashboard query helpers |
-| `prompt.test.ts` | 7 | Phase 6.2 — tone branches + INSTRUCCIONES ADICIONALES block (pure unit test) |
-| `clinic.actions.integration.test.ts` | 12 | Phase 6 — settings actions: auth gate, role gate, validation, WHATSAPP_TAKEN, overlap detection, replace-all, trim+null |
-| `dashboard.actions.integration.test.ts` | 8 | Phase 5 — manual reply + pause-bot actions: auth gate, clinic scope, NO_CLINIC_NUMBER, metadata.source persistence, paused-flag flips |
-| `staff.actions.integration.test.ts` | 13 | Phase 6.4 — invite/active/role actions: auth & role gates, ALREADY_ACTIVE, reactivate path, signIn-failure soft error, SELF_LOCKOUT, LAST_OWNER guards, non-OWNER can't touch OWNER |
-| `rate-limit.test.ts` | 4 | Phase 6.6 — token-bucket: burst capacity, refill over time, cap at capacity, per-key isolation |
-| `ai-demo.actions.integration.test.ts` | 6 | Phase 6.5 — runDemoTurn + clearDemoConversation: auth gate, validation, WEB-channel persistence, idempotent clear |
-| `health/__tests__/route.test.ts` | 1 | Phase 6.6 — /api/health returns 200 + sensible shape when DB reachable |
-| `webhook/__tests__/rate-limit.test.ts` | 2 | Phase 6.6 — verifies limiter is actually wired into the WhatsApp webhook (429 after capacity, per-sender isolation) |
-| `metrics.test.ts` | 5 | Phase 6.8 — counter registry: increment, label-bucketing, HELP+TYPE preamble, label-order canonicalization, escaping |
-| `metrics/__tests__/route.test.ts` | 4 | Phase 6.8 — /api/metrics: Prom format, METRICS_AUTH_TOKEN gating (404 when missing/wrong, 200 with correct bearer) |
-| `clinic.actions` (modules block) | 4 | Phase 6.9 — updateActiveModulesAction: role gate, replace-all, unknown-key filter + dedup, empty array allowed |
-| **TOTAL** | **128** | |
+| **Pure engines** | `availability`, `treatments`, `technicians`, `parse-clinic-time` | Slot generator, treatment matcher, technician eligibility ranker, local-vs-UTC parsing |
+| **Booking + orchestrator** | `booking.integration`, `orchestrate.integration`, `orchestrate.pause.integration`, `webhook.integration`, `retry`, `prompt` | Full booking transaction; orchestrator with scripted LLM; paused-bot short-circuit; escalate-to-human side effects; SSI retry helper; system-prompt branches (tone + guidance + notes) |
+| **WhatsApp** | `twilio`, `webhook/rate-limit` | Signature verify, parse, route-handler rate-limit wiring |
+| **Action layer** | `clinic.actions`, `dashboard.actions`, `staff.actions`, `ai-demo.actions`, `patients.actions`, `memories.actions` | Every mutating server action: auth/role gates, validation, business rules (WHATSAPP_TAKEN, ALREADY_ACTIVE, SELF_LOCKOUT, LAST_OWNER, etc.), audit-log side effects |
+| **Dashboard queries** | `queries.integration` | Shape + clinic-scoping for the dashboard's read helpers |
+| **Observability** | `metrics`, `rate-limit`, `metrics/route`, `health/route`, `version/route`, `audit/export.csv/route`, `audit` | Counter registry, token-bucket math, Prom endpoint + bearer gate, health endpoint, version endpoint, CSV export + RFC 4180 escaping, audit log helper |
+| **Modules guard** | `modules/guard` | Route-level module-disabled redirect with `?disabled=<key>` |
+
+Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`. Vitest loads `.env` via `setupFiles: ["dotenv/config"]`. **`fileParallelism: false`** in [vitest.config.ts](vitest.config.ts) prevents SSI races. Action tests mock `next/cache` (revalidatePath has no static-generation store under vitest) and `@/auth` (deterministic session injection).
 
 Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`. Vitest loads `.env` via `setupFiles: ["dotenv/config"]`. **`fileParallelism: false`** in [vitest.config.ts](vitest.config.ts) prevents the SSI race that makes parallel integration tests conflict on the same tables — see §7. Action tests mock `next/cache` because `revalidatePath` requires Next.js's static-generation store, which isn't available in vitest.
 
@@ -413,13 +418,21 @@ Integration tests gate on `process.env.DATABASE_URL` and `RUN_DB_TESTS !== "0"`.
 
 ## 8. What's NOT yet built
 
-Phase 1-5 closed out the original §8 punch list. Phase 6 added settings sub-pages and full test coverage of the new + existing action layer. Remaining items:
+Phase 1-6 closed out essentially all autonomous code work. **All settings sub-pages live** (clinic, hours, ai, staff, modulos, facturacion, audit). **All mutating actions audit-logged** with the full lifecycle visible at `/app/settings/audit` (filterable + paginated + CSV export, with clickable target links to the affected entity). **Module gating** active at both sidebar (entries hidden when module disabled) and route level (direct URLs redirect to `/app/settings/modulos?disabled=<key>` with a banner). **Mobile sidebar** with slide-out + backdrop. **Patient + appointment CRUD** from the dashboard. **Tool trace inspector** on every assistant message in the conversation thread. **AI memory editor** with full CRUD on the patient profile. **Inline appointment controls** on the patient detail page. **Conversation search**, **patient list pagination**, **audit log pagination**, **resend-invite** for staff. Remaining items:
 
-1. **Real Twilio provisioning** — webhook is wired but no real number is connected. Dev mode uses the stub.
+### Operational / external (your side)
+1. **Real Twilio provisioning** — webhook is wired but no real number connected. Dev mode uses the stub.
 2. **Real SMTP** — dev mode logs the magic link to the console. For production, fill in `SMTP_HOST`.
-3. **Multi-tenant self-service signup** — Users are inserted server-side by the clinic owner; signup is not self-service. Custom adapter rejects unknown emails.
-4. **Sub-pages under settings** — all five are live: `/app/settings/clinic`, `/app/settings/hours`, `/app/settings/ai`, `/app/settings/staff`, `/app/settings/modulos` (feature-toggle checkbox grid, persisted to `Clinic.activeModules` — does NOT yet hide sidebar entries; that's a future phase), and `/app/settings/facturacion` (read-only plan tier + features + billing-contact CTA; plan changes are not self-service — platform owner updates `Clinic.plan` directly). All OWNER+ADMIN gated.
-5. **Módulos contratados** and **Facturación** settings cards — still "Próximamente" because both need product/business decisions (what's a module? what's the pricing model?) before they can be coded.
+3. **DB backups + monitoring exporter** — hosting concern. `/api/metrics` exposes Prometheus counters; point a scraper at it.
+
+### Product / business decisions
+4. **Multi-tenant self-service signup** — Users currently inserted server-side. Custom adapter rejects unknown emails. Would need UX design (invite codes? domain match? email allowlist?).
+5. **Real billing integration** — `/app/settings/facturacion` is read-only against `Clinic.plan`. Stripe would need the pricing model decided (flat per-clinic? per-message? tiered?).
+
+### Engineering (defensible, not blocking)
+6. **Real-time inbox updates** — current behavior is 30s polling. Would need SSE or websockets if "instant" is required; polling is fine for most clinics.
+7. **Conversation full-text search across message content** — current search matches patient name/phone only. Add a `tsvector` column + GIN index if message-text search becomes a need.
+8. **Audit log retention policy** — append-only rows accumulate forever. Once you have real volume, add a periodic cleanup or month-based partitioning.
 
 ---
 
@@ -435,7 +448,7 @@ Phase 1-5 closed out the original §8 punch list. Phase 6 added settings sub-pag
 
 ### If continuing in the existing directory
 - `npm run db:up` (idempotent)
-- `npm run verify` to confirm green (typecheck + lint + 139 tests, ~13s)
+- `npm run verify` to confirm green (typecheck + lint + 189 tests, ~13s)
 - `npm run dev` and open [http://localhost:3000/app](http://localhost:3000/app)
 
 ### To sign in (dev)
@@ -504,7 +517,7 @@ npm run verify      # → typecheck + lint + tests (one-liner, bails at first fa
 # or run them individually:
 npm run typecheck   # → clean
 npm run lint        # → clean
-npm test            # → Test Files 22 passed (22) | Tests 139 passed (139)
+npm test            # → Test Files 27 passed (27) | Tests 189 passed (189)
 ```
 
 If any of these fail, that's the first thing to fix before reading further.

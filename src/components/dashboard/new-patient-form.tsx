@@ -7,11 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/input";
-import {
-  createPatientAction,
-  PATIENT_GENDER_OPTIONS,
-  type CreatePatientInput,
-} from "@/server/actions/patients";
+import { createPatientAction, type CreatePatientInput } from "@/server/actions/patients";
+import { PATIENT_GENDER_OPTIONS } from "@/server/actions/patients-options";
 
 const selectClass =
   "h-10 w-full rounded-xl border border-[color:var(--color-ink-100)] bg-white px-3 text-sm text-[color:var(--color-ink-900)] outline-none transition focus:border-[color:var(--color-brand-400)] focus:ring-2 focus:ring-[color:var(--color-brand-200)]/40 disabled:opacity-60";

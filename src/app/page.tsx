@@ -7,6 +7,7 @@ import {
   Calendar,
   CheckCircle2,
   ChevronRight,
+  Clock,
   Cloud,
   Globe,
   LineChart,
@@ -23,6 +24,9 @@ import {
 import { AizorixLogo } from "@/components/brand/aizorix-logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Fade } from "@/components/motion/fade";
+import { CountUp } from "@/components/motion/count-up";
+import { AiChatBubble } from "@/components/landing/ai-chat-bubble";
 
 const features = [
   {
@@ -65,8 +69,8 @@ const features = [
 
 const TONE_STYLES: Record<string, { card: string; icon: string; ring: string }> = {
   coral: {
-    card: "from-[#fff5f1] to-white",
-    icon: "from-[#ffb791] to-[#ff8a5b] text-white",
+    card: "from-[#e6f4f1] to-white",
+    icon: "from-[#4cd49a] to-[#0d9488] text-white",
     ring: "ring-[color:var(--color-coral-100)]",
   },
   lavender: {
@@ -90,8 +94,8 @@ const TONE_STYLES: Record<string, { card: string; icon: string; ring: string }> 
     ring: "ring-[color:var(--color-rose-100)]",
   },
   brand: {
-    card: "from-[#fffaeb] to-white",
-    icon: "from-[#ffd24a] to-[#e6b020] text-[color:var(--color-ink-900)]",
+    card: "from-[#effdf6] to-white",
+    icon: "from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)]",
     ring: "ring-[color:var(--color-brand-100)]",
   },
 };
@@ -205,29 +209,29 @@ export default function HomePage() {
 
         <div className="relative mx-auto max-w-7xl px-6 pt-20 pb-28 md:pt-28">
           <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="anim-fade-up">
+            <Fade>
               <Link
                 href="/app/campaigns"
-                className="group inline-flex items-center gap-2 rounded-full border border-[color:var(--color-ink-200)] bg-white/85 px-4 py-1.5 text-xs font-semibold text-[color:var(--color-ink-700)] shadow-sm backdrop-blur transition hover:border-[color:var(--color-brand-300)] hover:bg-white"
+                className="group inline-flex items-center gap-2 rounded-full border border-[color:var(--color-brand-200)]/60 bg-white/85 px-4 py-1.5 text-xs font-semibold text-[color:var(--color-ink-700)] shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-[color:var(--color-brand-400)] hover:bg-white hover:shadow-[var(--glow-violet-soft)]"
               >
                 <span className="relative inline-flex h-2 w-2 items-center justify-center">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--color-coral-400)] opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--color-coral-500)]" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--color-brand-400)] opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--color-brand-600)]" />
                 </span>
                 Novedad · ROI previsto antes de enviar
                 <ChevronRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
               </Link>
 
               <h1 className="mt-7 text-[2.7rem] font-black leading-[1.04] tracking-[-0.02em] text-[color:var(--color-ink-900)] sm:text-6xl lg:text-[4.25rem]">
-                El sistema operativo
+                Una plataforma
                 <br />
-                comercial para tu{" "}
+                para cada negocio.{" "}
                 <span className="relative inline-block">
-                  <span className="text-brand-gradient">clínica</span>
+                  <span className="text-brand-gradient">Resultados</span>
                   <svg
                     aria-hidden
                     viewBox="0 0 320 12"
-                    className="absolute -bottom-2 left-0 h-2 w-full text-[color:var(--color-coral-400)]"
+                    className="absolute -bottom-2 left-0 h-2 w-full text-[#7c3aed]"
                     fill="none"
                   >
                     <path
@@ -238,39 +242,40 @@ export default function HomePage() {
                     />
                   </svg>
                 </span>{" "}
-                o negocio.
+                para todos.
               </h1>
 
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-[color:var(--color-ink-500)]">
-                CRM, IA recepcionista, agenda, WhatsApp Business y campañas
-                inteligentes. Una plataforma modular, brillante y simple, que
-                crece contigo.
+                Conecta, automatiza y escala tu negocio con módulos
+                inteligentes diseñados para crecer contigo. CRM, IA
+                recepcionista, agenda y campañas en una sola plataforma.
               </p>
 
               <div className="mt-9 flex flex-wrap items-center gap-3">
-                <Button asChild variant="accent" size="lg">
+                <Button asChild variant="primary" size="lg">
                   <Link href="/onboarding">
-                    Configurar mi negocio <ArrowRight />
+                    <Sparkles className="h-5 w-5" />
+                    Explorar sectores <ArrowRight />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg">
                   <Link href="/app">
-                    <PlayCircle /> Ver demo en vivo
+                    <PlayCircle /> Ver cómo funciona
                   </Link>
                 </Button>
               </div>
 
               <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-2 text-sm text-[color:var(--color-ink-500)]">
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-[color:var(--color-mint-500)]" />
+                  <CheckCircle2 className="h-4 w-4 text-[color:var(--color-brand-600)]" />
                   Sin tarjeta para empezar
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-[color:var(--color-mint-500)]" />
+                  <CheckCircle2 className="h-4 w-4 text-[color:var(--color-brand-600)]" />
                   Onboarding en 10 minutos
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-[color:var(--color-mint-500)]" />
+                  <CheckCircle2 className="h-4 w-4 text-[color:var(--color-brand-600)]" />
                   Soporte en español
                 </span>
               </div>
@@ -292,120 +297,164 @@ export default function HomePage() {
                       />
                     </span>
                   ))}
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] text-[10px] font-black text-[color:var(--color-ink-900)] ring-2 ring-white">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] text-[10px] font-black text-white ring-2 ring-white shadow-[0_4px_10px_-4px_rgba(124,58,237,0.5)]">
                     +120
                   </span>
                 </div>
                 <div>
-                  <div className="flex items-center gap-0.5 text-[color:var(--color-brand-500)]">
+                  <div className="flex items-center gap-0.5 text-[#f59e0b]">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star key={i} className="h-3.5 w-3.5 fill-current" />
                     ))}
                   </div>
                   <p className="text-xs text-[color:var(--color-ink-500)]">
-                    4.9 sobre 5 · negocios activos en España
+                    4.9 sobre 5 · +250 negocios automatizados con Aizorix
                   </p>
                 </div>
               </div>
-            </div>
+            </Fade>
 
-            {/* Hero showcase */}
-            <div className="relative anim-fade-up delay-2">
-              <div className="absolute -inset-12 -z-10 rounded-[44px] bg-gradient-to-br from-[color:var(--color-coral-100)] via-[color:var(--color-brand-100)] to-[color:var(--color-lavender-100)] blur-3xl opacity-80" />
+            {/* Hero showcase — futuristic violet banner with floating KPI cards */}
+            <Fade delay={2} className="relative">
+              {/* Background aurora glow */}
+              <div className="absolute -inset-12 -z-10 rounded-[44px] bg-gradient-to-br from-[#c4b5fd]/60 via-[#a78bfa]/30 to-[#7c3aed]/40 blur-3xl opacity-80" />
 
-              {/* Chat card */}
-              <div className="relative rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[var(--shadow-xl)] backdrop-blur-xl ring-1 ring-[color:var(--color-ink-100)]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[color:var(--color-mint-200)] to-[color:var(--color-mint-500)] text-white shadow-[0_8px_22px_-10px_rgba(32,191,124,0.5)]">
-                      <Bot className="h-5 w-5" />
-                      <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-[color:var(--color-mint-500)]" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-[color:var(--color-ink-900)]">
-                        Lucía · Asistente Aizorix
-                      </p>
-                      <p className="flex items-center gap-1.5 text-xs text-[color:var(--color-mint-500)]">
-                        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--color-mint-500)]" />
-                        Respondiendo en WhatsApp · 1.2 s
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant="brand">
-                    <Sparkles className="h-3 w-3" /> IA
-                  </Badge>
-                </div>
+              {/* Main banner — gradient panel with light streaks */}
+              <div className="relative overflow-hidden rounded-[32px] border border-white/30 bg-gradient-to-br from-[#1e1b4b] via-[#3730a3] to-[#5b21b6] p-8 shadow-[0_30px_80px_-24px_rgba(76,29,149,0.55)] aspect-[5/4]">
+                {/* Decorative streaks */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#a78bfa]/40 blur-3xl"
+                />
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -bottom-20 -left-10 h-60 w-60 rounded-full bg-[#7c3aed]/35 blur-3xl"
+                />
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute right-1/4 top-1/2 h-px w-3/4 -translate-y-1/2 rotate-[-12deg] bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                />
 
-                <div className="mt-6 space-y-3 text-sm">
-                  <div className="ml-auto w-fit max-w-[82%] rounded-2xl rounded-tr-md bg-gradient-to-br from-[color:var(--color-brand-300)] to-[color:var(--color-coral-400)] px-4 py-2.5 text-[color:var(--color-ink-900)] shadow-md">
-                    Hola, quería información del Dermapen 🌸
-                  </div>
-                  <div className="w-fit max-w-[88%] rounded-2xl rounded-tl-md bg-[color:var(--color-surface-2)] px-4 py-2.5 text-[color:var(--color-ink-800)]">
-                    ¡Hola! El Dermapen es un tratamiento de micro-punción que
-                    estimula la regeneración celular. <b>45 min · 90 €</b>. ¿Te
-                    reservo la valoración previa?
-                  </div>
-                  <div className="ml-auto w-fit max-w-[78%] rounded-2xl rounded-tr-md bg-gradient-to-br from-[color:var(--color-brand-300)] to-[color:var(--color-coral-400)] px-4 py-2.5 text-[color:var(--color-ink-900)] shadow-md">
-                    Sí, mañana por la tarde si puede ser
-                  </div>
-                  <div className="w-fit max-w-[88%] rounded-2xl rounded-tl-md bg-[color:var(--color-surface-2)] px-4 py-2.5 text-[color:var(--color-ink-800)]">
-                    Tengo <b>17:00</b> y <b>18:30</b> disponibles. ¿Cuál te encaja?
-                  </div>
-                </div>
-
-                <div className="mt-6 flex items-center gap-3 rounded-2xl border border-[color:var(--color-mint-200)]/80 bg-gradient-to-br from-[color:var(--color-mint-50)] to-white p-3.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[color:var(--color-mint-200)] to-[color:var(--color-mint-500)] text-white shadow-[0_6px_14px_-6px_rgba(32,191,124,0.55)]">
-                    <Calendar className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--color-mint-500)]">
-                      Cita creada en Google Calendar
-                    </p>
-                    <p className="text-sm text-[color:var(--color-ink-800)]">
-                      Valoración Dermapen · Laura Martínez · mañana 17:00
-                    </p>
-                  </div>
-                  <CheckCircle2 className="h-5 w-5 text-[color:var(--color-mint-500)]" />
-                </div>
-              </div>
-
-              {/* Floating mini stat */}
-              <div className="absolute -left-6 -top-6 hidden rounded-2xl border border-white/80 bg-white/95 px-4 py-3 shadow-[var(--shadow-lg)] backdrop-blur-xl anim-float md:block">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
-                  Citas esta semana
-                </p>
-                <p className="mt-0.5 text-2xl font-black text-[color:var(--color-ink-900)]">
-                  74{" "}
-                  <span className="text-xs font-bold text-[color:var(--color-mint-500)]">
-                    ↑ 23%
+                {/* Mock-up of the platform brand inside the banner */}
+                <div className="relative flex h-full flex-col items-center justify-center text-center">
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/85 ring-1 ring-white/20 backdrop-blur-sm">
+                    Aizorix · Platform
                   </span>
-                </p>
+                  <p className="mt-6 text-5xl font-black tracking-tight text-white drop-shadow-[0_8px_24px_rgba(124,58,237,0.5)] sm:text-6xl">
+                    AIZORIX
+                  </p>
+                  <p className="mt-2 text-xs font-medium text-white/70">
+                    Automation · CRM · IA
+                  </p>
+                  <div className="mt-8 flex items-center gap-2">
+                    <Bot className="h-4 w-4 text-white/80" />
+                    <p className="text-xs text-white/80">Operativo · 99.97% uptime</p>
+                  </div>
+                </div>
               </div>
 
-              {/* Floating CRM card */}
+              {/* Floating KPI card — top-right (Automatizaciones activas) */}
               <div
-                className="absolute -bottom-7 -right-4 hidden w-64 rounded-2xl border border-white/80 bg-white/95 p-4 shadow-[var(--shadow-lg)] backdrop-blur-xl md:block"
+                className="absolute -right-3 top-6 w-52 rounded-2xl border border-white/60 bg-white/95 p-4 shadow-[0_24px_60px_-20px_rgba(15,21,44,0.18)] backdrop-blur-xl anim-float"
+              >
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full opacity-50 blur-2xl"
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(139,92,246,0.45) 0%, transparent 60%)",
+                  }}
+                />
+                <div className="relative">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
+                    Automatizaciones activas
+                  </p>
+                  <p className="mt-1 flex items-baseline gap-1.5 text-3xl font-black tracking-tight text-[color:var(--color-ink-900)]">
+                    <CountUp to={128} duration={1400} />
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200/70">
+                      <TrendingUp className="h-2.5 w-2.5" />
+                      +24%
+                    </span>
+                  </p>
+                  {/* Mini chart hint */}
+                  <svg
+                    aria-hidden
+                    viewBox="0 0 120 30"
+                    className="mt-2 h-7 w-full text-[#7c3aed]"
+                    fill="none"
+                  >
+                    <path
+                      d="M2 22 L18 16 L34 19 L48 12 L62 14 L78 8 L94 11 L118 4"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M2 22 L18 16 L34 19 L48 12 L62 14 L78 8 L94 11 L118 4 L118 30 L2 30 Z"
+                      fill="url(#sparkFill)"
+                      opacity="0.25"
+                    />
+                    <defs>
+                      <linearGradient id="sparkFill" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="#7c3aed" />
+                        <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+              </div>
+
+              {/* Floating KPI card — middle-right (Ahorro de tiempo) */}
+              <div
+                className="absolute -right-2 top-[58%] w-48 rounded-2xl border border-white/60 bg-white/95 p-4 shadow-[0_24px_60px_-20px_rgba(15,21,44,0.18)] backdrop-blur-xl"
                 style={{ animation: "float-y 7s ease-in-out infinite reverse" }}
               >
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[color:var(--color-lavender-200)] to-[color:var(--color-lavender-500)] text-xs font-black text-white">
-                    LM
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#ede9fe] to-[#ddd6fe] text-[#6d28d9] ring-1 ring-[#c4b5fd]/60">
+                    <Clock className="h-4 w-4" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold">Laura Martínez</p>
-                    <p className="truncate text-[11px] text-[color:var(--color-ink-500)]">
-                      Lead · Interés Dermapen
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
+                      Ahorro de tiempo
+                    </p>
+                    <p className="mt-0.5 text-2xl font-black tracking-tight text-[color:var(--color-ink-900)]">
+                      <CountUp to={320} duration={1600} suffix=" h" />
+                    </p>
+                    <p className="text-[10px] text-[color:var(--color-ink-500)]">
+                      este mes
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating KPI card — bottom-left (Mensajes IA) */}
+              <div
+                className="absolute -left-4 -bottom-4 hidden w-56 rounded-2xl border border-white/60 bg-white/95 p-4 shadow-[0_24px_60px_-20px_rgba(15,21,44,0.18)] backdrop-blur-xl md:block"
+                style={{ animation: "float-y 8s ease-in-out infinite" }}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] text-white shadow-[0_6px_14px_-6px_rgba(124,58,237,0.55)]">
+                    <Bot className="h-4 w-4" />
+                    <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 animate-pulse rounded-full border-2 border-white bg-emerald-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-bold text-[color:var(--color-ink-900)]">
+                      IA Recepcionista
+                    </p>
+                    <p className="truncate text-[10px] text-emerald-600">
+                      Respondiendo · 1.2 s
                     </p>
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between text-[11px]">
-                  <Badge variant="success">Convertida</Badge>
-                  <span className="font-bold text-[color:var(--color-ink-900)]">
-                    + 90 €
+                  <span className="text-[color:var(--color-ink-500)]">Mensajes hoy</span>
+                  <span className="font-black text-[color:var(--color-ink-900)]">
+                    <CountUp to={1247} duration={1400} />
                   </span>
                 </div>
               </div>
-            </div>
+            </Fade>
           </div>
 
           {/* Logo strip */}
@@ -426,6 +475,62 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ─────────────── Dark feature strip (matches the reference's glowing band) ─────────────── */}
+      <section className="relative overflow-hidden border-y border-white/10 bg-gradient-to-br from-[#1a1530] via-[#1e1b4b] to-[#1a1530] py-10">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-[120%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#7c3aed]/15 blur-3xl"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-[#a78bfa]/40 to-transparent"
+        />
+        <div className="relative mx-auto grid max-w-7xl gap-6 px-6 sm:grid-cols-2 lg:grid-cols-5">
+          {[
+            {
+              icon: Zap,
+              title: "Automatiza procesos",
+              text: "Ahorra tiempo y reduce costes operativos.",
+            },
+            {
+              icon: Bot,
+              title: "Inteligencia Artificial",
+              text: "IA avanzada que trabaja para tu negocio.",
+            },
+            {
+              icon: LineChart,
+              title: "Datos en tiempo real",
+              text: "Toma decisiones con información actualizada.",
+            },
+            {
+              icon: Sparkles,
+              title: "100% Personalizable",
+              text: "Adaptamos la plataforma a tu forma de trabajar.",
+            },
+            {
+              icon: ShieldCheck,
+              title: "Seguro y confiable",
+              text: "Tus datos y los de tus clientes siempre protegidos.",
+            },
+          ].map((f) => (
+            <div
+              key={f.title}
+              className="group flex items-start gap-3 transition-transform duration-300 hover:-translate-y-0.5"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#7c3aed]/25 to-[#5b21b6]/40 text-[#c4b5fd] ring-1 ring-white/10 backdrop-blur transition group-hover:from-[#8b5cf6]/35 group-hover:to-[#6d28d9]/60 group-hover:text-white">
+                <f.icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white">{f.title}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-white/65">
+                  {f.text}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -567,7 +672,7 @@ export default function HomePage() {
                       key={i.l}
                       className={`mb-1 flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] font-medium ${
                         i.on
-                          ? "bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] text-[color:var(--color-ink-900)]"
+                          ? "bg-gradient-to-br from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)]"
                           : "text-[color:var(--color-ink-600)]"
                       }`}
                     >
@@ -587,7 +692,7 @@ export default function HomePage() {
                 <div className="col-span-9 p-4">
                   <div className="grid grid-cols-4 gap-2">
                     {[
-                      { l: "Leads 7d", v: "38", d: "+22%", c: "from-[#fff5f1] to-white" },
+                      { l: "Leads 7d", v: "38", d: "+22%", c: "from-[#e6f4f1] to-white" },
                       { l: "Citas", v: "14", d: "3 hoy", c: "from-[#eff7ff] to-white" },
                       { l: "Cierre", v: "23,7%", d: "+4%", c: "from-[#f5f3ff] to-white" },
                       { l: "Ingresos", v: "8,4k €", d: "+12%", c: "from-[#effdf6] to-white" },
@@ -614,8 +719,8 @@ export default function HomePage() {
                     {[
                       { l: "Leads", w: 100, g: "from-[#5aa6ff] to-[#2f88ff]" },
                       { l: "Conversaciones IA", w: 73, g: "from-[#9b8cff] to-[#7c6cf5]" },
-                      { l: "Interesados", w: 47, g: "from-[#ffd24a] to-[#f5c842]" },
-                      { l: "Citas agendadas", w: 31, g: "from-[#ffb791] to-[#ff8a5b]" },
+                      { l: "Interesados", w: 47, g: "from-[#25d366] to-[#14b87a]" },
+                      { l: "Citas agendadas", w: 31, g: "from-[#4cd49a] to-[#0d9488]" },
                       { l: "Ventas cerradas", w: 24, g: "from-[#4cd49a] to-[#20bf7c]" },
                     ].map((b) => (
                       <div key={b.l} className="mt-2 flex items-center gap-2">
@@ -961,6 +1066,9 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Floating AI chat bubble — fixed bottom-right, teaser conversation */}
+      <AiChatBubble />
     </div>
   );
 }

@@ -4,15 +4,14 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
+import { logAudit } from "@/server/audit";
+import { PATIENT_GENDER_OPTIONS } from "./patients-options";
 
 type ActionResult<T = undefined> = T extends undefined
   ? { ok: true } | { ok: false; error: { code: string; message: string } }
   : { ok: true; data: T } | { ok: false; error: { code: string; message: string } };
 
 const E164 = /^\+\d{8,15}$/;
-
-const GENDERS = ["FEMALE", "MALE"] as const;
-export const PATIENT_GENDER_OPTIONS = GENDERS;
 
 const createPatientSchema = z.object({
   firstName: z.string().trim().min(1, "Nombre obligatorio").max(120),
@@ -34,7 +33,7 @@ const createPatientSchema = z.object({
     .nullable()
     .optional(),
   gender: z
-    .enum(GENDERS)
+    .enum(PATIENT_GENDER_OPTIONS)
     .or(z.literal(""))
     .transform((v) => (v === "" ? null : v))
     .nullable()
@@ -122,6 +121,14 @@ export async function createPatientAction(
     select: { id: true },
   });
 
+  await logAudit({
+    clinicId,
+    actorUserId: session.user.id,
+    action: "patient.created",
+    target: `patient:${created.id}`,
+    metadata: { phone: parsed.data.phone, source: parsed.data.source ?? null },
+  });
+
   revalidatePath("/app/clients");
   revalidatePath("/app/pipeline");
   revalidatePath("/app");
@@ -202,6 +209,17 @@ export async function updatePatientAction(
       source: parsed.data.source ?? null,
       notes: parsed.data.notes ?? null,
       status: parsed.data.status,
+    },
+  });
+
+  await logAudit({
+    clinicId,
+    actorUserId: session.user.id,
+    action: "patient.updated",
+    target: `patient:${existing.id}`,
+    metadata: {
+      status: parsed.data.status,
+      phoneChanged: parsed.data.phone !== existing.phone,
     },
   });
 

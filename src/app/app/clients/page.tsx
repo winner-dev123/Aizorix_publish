@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, Search, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Search, Users } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,9 @@ import { getPatients } from "@/server/dashboard/queries";
 
 export const revalidate = 30;
 
-type SearchParams = Promise<{ q?: string }>;
+type SearchParams = Promise<{ q?: string; page?: string }>;
+
+const PAGE_SIZE = 50;
 
 export default async function ClientsPage({
   searchParams,
@@ -24,8 +26,25 @@ export default async function ClientsPage({
   const clinic = await prisma.clinic.findUnique({ where: { id: clinicId } });
   if (!clinic) redirect("/signin");
 
-  const { q } = await searchParams;
-  const patients = await getPatients(clinicId, q);
+  const { q, page: pageRaw } = await searchParams;
+  const parsedPage = Math.max(1, Number.parseInt(pageRaw ?? "1", 10) || 1);
+  const { rows: patients, total, page, totalPages } = await getPatients(
+    clinicId,
+    q,
+    parsedPage,
+    PAGE_SIZE,
+  );
+
+  function pageHref(targetPage: number): string {
+    const sp = new URLSearchParams();
+    if (q) sp.set("q", q);
+    if (targetPage > 1) sp.set("page", String(targetPage));
+    return sp.size > 0 ? `/app/clients?${sp.toString()}` : "/app/clients";
+  }
+  const prevPage = Math.max(1, page - 1);
+  const nextPage = Math.min(totalPages, page + 1);
+  const firstRow = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const lastRow = (page - 1) * PAGE_SIZE + patients.length;
 
   function initials(p: { firstName: string; lastName: string | null }) {
     const a = p.firstName?.[0] ?? "";
@@ -56,7 +75,7 @@ export default async function ClientsPage({
             Buscar
           </Button>
           <span className="flex items-center gap-1.5 rounded-full bg-[color:var(--color-ink-50)] px-3 py-1 text-xs font-semibold text-[color:var(--color-ink-700)]">
-            <Users className="h-3 w-3" /> {patients.length} {patients.length === 1 ? "cliente" : "clientes"}
+            <Users className="h-3 w-3" /> {total} {total === 1 ? "cliente" : "clientes"}
           </span>
         </form>
 
@@ -98,7 +117,7 @@ export default async function ClientsPage({
                       href={`/app/clients/${p.id}`}
                       className="flex items-center gap-3 font-medium"
                     >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] text-xs font-black text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(255,138,91,0.45)]">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] text-xs font-black text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(13,148,136,0.45)]">
                         {initials(p)}
                       </div>
                       <div>
@@ -126,6 +145,44 @@ export default async function ClientsPage({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination footer — only renders when there's more than one page,
+            so the empty/small-clinic case stays clean. */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-3 border-t border-[color:var(--color-ink-100)] bg-[color:var(--color-surface-1)] px-5 py-3 text-xs text-[color:var(--color-ink-600)]">
+            <p>
+              Mostrando <span className="font-bold">{firstRow}–{lastRow}</span> de{" "}
+              <span className="font-bold">{total}</span>
+            </p>
+            <div className="flex items-center gap-2">
+              <Button asChild={page > 1} variant="outline" size="sm" disabled={page <= 1}>
+                {page > 1 ? (
+                  <Link href={pageHref(prevPage)}>
+                    <ChevronLeft className="h-4 w-4" /> Anterior
+                  </Link>
+                ) : (
+                  <span>
+                    <ChevronLeft className="h-4 w-4" /> Anterior
+                  </span>
+                )}
+              </Button>
+              <span className="px-1 font-semibold text-[color:var(--color-ink-700)]">
+                Página {page} / {totalPages}
+              </span>
+              <Button asChild={page < totalPages} variant="outline" size="sm" disabled={page >= totalPages}>
+                {page < totalPages ? (
+                  <Link href={pageHref(nextPage)}>
+                    Siguiente <ChevronRight className="h-4 w-4" />
+                  </Link>
+                ) : (
+                  <span>
+                    Siguiente <ChevronRight className="h-4 w-4" />
+                  </span>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

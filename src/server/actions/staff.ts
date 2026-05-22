@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth, signIn } from "@/auth";
 import { prisma } from "@/server/db";
+import { logAudit } from "@/server/audit";
 import { STAFF_ROLE_OPTIONS } from "./staff-options";
 
 type ActionResult =
@@ -97,6 +98,72 @@ export async function inviteStaffAction(input: InviteStaffInput): Promise<Action
     };
   }
 
+  await logAudit({
+    clinicId,
+    actorUserId: session.user.id,
+    action: "staff.invited",
+    target: `user:${email}`,
+    metadata: { email, role, reactivated: !!existing },
+  });
+
+  revalidatePath("/app/settings/staff");
+  return { ok: true };
+}
+
+/**
+ * Resend the magic-link email to an existing active staff member. Common
+ * receptionist ask: "my first link expired, send me another." Same role
+ * gate as the rest of the staff lifecycle actions.
+ *
+ * Refuses to resend to inactive users — they should be reactivated via
+ * setStaffActiveAction first (which produces an audit-log distinct from
+ * a re-send, so we don't conflate the two cases).
+ */
+export async function resendStaffInviteAction(userId: string): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: { code: "UNAUTHORIZED", message: "No session" } };
+  if (session.user.role !== "OWNER" && session.user.role !== "ADMIN") {
+    return { ok: false, error: { code: "FORBIDDEN", message: "No tienes permisos" } };
+  }
+
+  const target = await prisma.user.findFirst({
+    where: { id: userId, clinicId: session.user.clinicId },
+    select: { id: true, email: true, active: true },
+  });
+  if (!target) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Usuario no encontrado" } };
+  }
+  if (!target.active) {
+    return {
+      ok: false,
+      error: {
+        code: "INACTIVE_USER",
+        message: "El usuario está desactivado. Reactívalo primero.",
+      },
+    };
+  }
+
+  try {
+    await signIn("nodemailer", { email: target.email, redirect: false });
+  } catch (e) {
+    console.error("[resendStaffInviteAction] signIn failed:", e);
+    return {
+      ok: false,
+      error: {
+        code: "EMAIL_FAILED",
+        message: "No se pudo enviar el email. Inténtalo de nuevo o usa /signin.",
+      },
+    };
+  }
+
+  await logAudit({
+    clinicId: session.user.clinicId,
+    actorUserId: session.user.id,
+    action: "staff.invite_resent",
+    target: `user:${target.id}`,
+    metadata: { email: target.email },
+  });
+
   revalidatePath("/app/settings/staff");
   return { ok: true };
 }
@@ -152,6 +219,15 @@ export async function setStaffActiveAction(
   }
 
   await prisma.user.update({ where: { id: target.id }, data: { active } });
+
+  await logAudit({
+    clinicId: session.user.clinicId,
+    actorUserId: session.user.id,
+    action: active ? "staff.activated" : "staff.deactivated",
+    target: `user:${target.id}`,
+    metadata: { email: target.email },
+  });
+
   revalidatePath("/app/settings/staff");
   return { ok: true };
 }
@@ -225,6 +301,15 @@ export async function setStaffRoleAction(input: SetStaffRoleInput): Promise<Acti
   }
 
   await prisma.user.update({ where: { id: target.id }, data: { role: role as Role } });
+
+  await logAudit({
+    clinicId: session.user.clinicId,
+    actorUserId: session.user.id,
+    action: "staff.role_changed",
+    target: `user:${target.id}`,
+    metadata: { email: target.email, fromRole: target.role, toRole: role },
+  });
+
   revalidatePath("/app/settings/staff");
   return { ok: true };
 }

@@ -11,6 +11,7 @@ import { rescheduleAppointment } from "@/server/booking/reschedule";
 import { isDomainError } from "@/server/errors";
 import { getWhatsAppProvider } from "@/server/whatsapp";
 import { incr } from "@/server/metrics";
+import { logAudit } from "@/server/audit";
 
 type ActionResult =
   | { ok: true }
@@ -32,6 +33,13 @@ export async function cancelAppointmentAction(
       appointmentId,
       clinicId: session.user.clinicId,
       reason: reason ?? "Cancelado desde panel",
+    });
+    await logAudit({
+      clinicId: session.user.clinicId,
+      actorUserId: session.user.id,
+      action: "appointment.cancelled",
+      target: `appointment:${appointmentId}`,
+      metadata: { reason: reason ?? "Cancelado desde panel" },
     });
     revalidatePath("/app/agenda");
     return { ok: true };
@@ -64,6 +72,13 @@ export async function rescheduleAppointmentAction(
       appointmentId,
       clinicId: session.user.clinicId,
       newStartsAt: fromZonedTime(newStartsAtLocal, clinic.timezone),
+    });
+    await logAudit({
+      clinicId: session.user.clinicId,
+      actorUserId: session.user.id,
+      action: "appointment.rescheduled",
+      target: `appointment:${appointmentId}`,
+      metadata: { newStartsAtLocal },
     });
     revalidatePath("/app/agenda");
     return { ok: true };
@@ -103,6 +118,15 @@ export async function resolveHandoffAction(handoffId: string): Promise<ActionRes
       data: { requiresHuman: false, botPaused: false },
     });
   }
+
+  await logAudit({
+    clinicId: session.user.clinicId,
+    actorUserId: session.user.id,
+    action: "handoff.resolved",
+    target: `handoff:${handoff.id}`,
+    metadata: { conversationId: handoff.conversationId, reason: handoff.reason },
+  });
+
   revalidatePath("/app/conversations");
   return { ok: true };
 }
@@ -129,6 +153,14 @@ export async function setBotPausedAction(
     where: { id: conv.id },
     data: { botPaused: paused },
   });
+
+  await logAudit({
+    clinicId: session.user.clinicId,
+    actorUserId: session.user.id,
+    action: paused ? "bot.paused" : "bot.resumed",
+    target: `conversation:${conv.id}`,
+  });
+
   revalidatePath("/app/conversations");
   return { ok: true };
 }
@@ -206,6 +238,14 @@ export async function sendManualReplyAction(
   ]);
 
   incr("aizorix_manual_replies_total", { provider: provider.id });
+  await logAudit({
+    clinicId: session.user.clinicId,
+    actorUserId: session.user.id,
+    action: "manual_reply.sent",
+    target: `conversation:${conv.id}`,
+    metadata: { provider: provider.id, status: result.status, length: body.length },
+  });
+
   revalidatePath("/app/conversations");
   return { ok: true };
 }
@@ -256,6 +296,14 @@ export async function updatePatientNotesAction(
   await prisma.patient.update({
     where: { id: target.id },
     data: { notes: parsed.data },
+  });
+
+  await logAudit({
+    clinicId: session.user.clinicId,
+    actorUserId: session.user.id,
+    action: "patient.notes_updated",
+    target: `patient:${target.id}`,
+    metadata: { length: parsed.data?.length ?? 0 },
   });
 
   revalidatePath(`/app/clients/${target.id}`);
@@ -323,6 +371,18 @@ export async function createAppointmentAction(
       notes: parsed.data.notes,
       createdBy: "STAFF",
       bypassLeadTime: parsed.data.bypassLeadTime,
+    });
+    await logAudit({
+      clinicId: session.user.clinicId,
+      actorUserId: session.user.id,
+      action: "appointment.created",
+      target: `appointment:${appt.id}`,
+      metadata: {
+        patientId: parsed.data.patientId,
+        treatmentId: parsed.data.treatmentId,
+        startsAtLocal: parsed.data.startsAtLocal,
+        bypassLeadTime: parsed.data.bypassLeadTime,
+      },
     });
     revalidatePath("/app/agenda");
     revalidatePath("/app");

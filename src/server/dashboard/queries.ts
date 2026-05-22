@@ -28,11 +28,34 @@ export async function getAgendaWeek(clinicId: string, anchor: Date = new Date())
   return { start, end, appointments };
 }
 
-export async function getNeedsAttentionConversations(clinicId: string) {
+/**
+ * Search clause shared between the two conversation list queries. Matches
+ * the patient's name/phone OR the conversation's raw externalChatId (so a
+ * search for a phone number still finds conversations that haven't been
+ * linked to a Patient row yet).
+ */
+function conversationSearchWhere(trimmed: string) {
+  return {
+    OR: [
+      { externalChatId: { contains: trimmed } },
+      { patient: { firstName: { contains: trimmed, mode: "insensitive" as const } } },
+      { patient: { lastName: { contains: trimmed, mode: "insensitive" as const } } },
+      { patient: { phone: { contains: trimmed } } },
+    ],
+  };
+}
+
+export async function getNeedsAttentionConversations(clinicId: string, search?: string) {
+  const trimmed = search?.trim();
   return prisma.conversation.findMany({
     // Demo runs from /app/ai create WEB-channel rows; filter them out of
     // the staff inbox so they don't show up as real patient threads.
-    where: { clinicId, requiresHuman: true, channel: "WHATSAPP" },
+    where: {
+      clinicId,
+      requiresHuman: true,
+      channel: "WHATSAPP",
+      ...(trimmed ? conversationSearchWhere(trimmed) : {}),
+    },
     include: {
       patient: { select: { id: true, firstName: true, lastName: true, phone: true } },
       messages: { orderBy: { createdAt: "desc" }, take: 1 },
@@ -47,9 +70,14 @@ export async function getNeedsAttentionConversations(clinicId: string) {
   });
 }
 
-export async function getRecentConversations(clinicId: string) {
+export async function getRecentConversations(clinicId: string, search?: string) {
+  const trimmed = search?.trim();
   return prisma.conversation.findMany({
-    where: { clinicId, channel: "WHATSAPP" },
+    where: {
+      clinicId,
+      channel: "WHATSAPP",
+      ...(trimmed ? conversationSearchWhere(trimmed) : {}),
+    },
     include: {
       patient: { select: { id: true, firstName: true, lastName: true, phone: true } },
       messages: { orderBy: { createdAt: "desc" }, take: 1 },
@@ -686,26 +714,41 @@ export async function getStaffList(clinicId: string) {
   });
 }
 
-export async function getPatients(clinicId: string, search?: string) {
+export async function getPatients(
+  clinicId: string,
+  search?: string,
+  page = 1,
+  pageSize = 50,
+) {
   const trimmed = search?.trim();
-  return prisma.patient.findMany({
-    where: {
-      clinicId,
-      ...(trimmed
-        ? {
-            OR: [
-              { firstName: { contains: trimmed, mode: "insensitive" } },
-              { lastName: { contains: trimmed, mode: "insensitive" } },
-              { phone: { contains: trimmed } },
-              { email: { contains: trimmed, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    include: {
-      _count: { select: { appointments: true, conversations: true } },
-    },
-    orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
-    take: 100,
-  });
+  const where = {
+    clinicId,
+    ...(trimmed
+      ? {
+          OR: [
+            { firstName: { contains: trimmed, mode: "insensitive" as const } },
+            { lastName: { contains: trimmed, mode: "insensitive" as const } },
+            { phone: { contains: trimmed } },
+            { email: { contains: trimmed, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
+  };
+
+  // Single round-trip via $transaction — saves one DB hop vs two awaits.
+  const [rows, total] = await prisma.$transaction([
+    prisma.patient.findMany({
+      where,
+      include: {
+        _count: { select: { appointments: true, conversations: true } },
+      },
+      orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
+      skip: Math.max(0, (page - 1) * pageSize),
+      take: pageSize,
+    }),
+    prisma.patient.count({ where }),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  return { rows, total, page, pageSize, totalPages };
 }

@@ -12,16 +12,18 @@ interface StatCardProps {
 }
 
 const ACCENTS: Record<NonNullable<StatCardProps["accent"]>, string> = {
+  // brand → violet (Aizorix AI palette). Kept as the default accent so
+  // every page that doesn't specify one reads as on-brand.
   brand:
-    "from-[#fffbeb] to-white text-[color:var(--color-brand-700)] before:bg-[radial-gradient(circle_at_top_right,rgba(245,200,66,0.35),transparent_60%)]",
+    "from-[#f5f3ff] to-white text-[#6d28d9] before:bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.40),transparent_60%)]",
   violet:
-    "from-violet-50 to-white text-violet-700 before:bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.32),transparent_60%)]",
+    "from-violet-50 to-white text-violet-700 before:bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.40),transparent_60%)]",
   emerald:
     "from-emerald-50 to-white text-emerald-700 before:bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.32),transparent_60%)]",
   sky:
-    "from-sky-50 to-white text-sky-700 before:bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.30),transparent_60%)]",
+    "from-sky-50 to-white text-sky-700 before:bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.32),transparent_60%)]",
   rose:
-    "from-rose-50 to-white text-rose-700 before:bg-[radial-gradient(circle_at_top_right,rgba(244,63,94,0.30),transparent_60%)]",
+    "from-rose-50 to-white text-rose-700 before:bg-[radial-gradient(circle_at_top_right,rgba(244,63,94,0.32),transparent_60%)]",
 };
 
 export function StatCard({
@@ -37,7 +39,8 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        "relative overflow-hidden bg-gradient-to-br card-hover",
+        "group relative overflow-hidden bg-gradient-to-br transition-all duration-300",
+        "hover:-translate-y-1 hover:border-[color:var(--color-brand-200)] hover:shadow-[var(--glow-violet-soft)]",
         accentClasses.split(" ").filter((c) => c.startsWith("from-") || c.startsWith("to-")).join(" "),
         className,
       )}

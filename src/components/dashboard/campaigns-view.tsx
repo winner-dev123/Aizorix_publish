@@ -139,7 +139,7 @@ export function CampaignsView({ audience }: { audience: CampaignAudience }) {
                   className={cn(
                     "group relative flex flex-col overflow-hidden rounded-2xl border p-4 text-left transition-all",
                     active
-                      ? "border-[color:var(--color-brand-300)] bg-gradient-to-br from-[#fffaeb] via-[#fff5f1] to-white shadow-[0_14px_36px_-14px_rgba(255,138,91,0.4)] ring-2 ring-[color:var(--color-brand-200)]/70"
+                      ? "border-[color:var(--color-brand-300)] bg-gradient-to-br from-[#effdf6] via-[#e6f4f1] to-white shadow-[0_14px_36px_-14px_rgba(13,148,136,0.4)] ring-2 ring-[color:var(--color-brand-200)]/70"
                       : `border-[color:var(--color-ink-100)] bg-gradient-to-br ${t.tone} hover:border-[color:var(--color-ink-300)] hover:-translate-y-0.5 hover:shadow-md`,
                   )}
                 >
@@ -148,7 +148,7 @@ export function CampaignsView({ audience }: { audience: CampaignAudience }) {
                       className={cn(
                         "flex h-10 w-10 items-center justify-center rounded-xl shadow-sm",
                         active
-                          ? "bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] text-[color:var(--color-ink-900)]"
+                          ? "bg-gradient-to-br from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)]"
                           : "bg-white text-[color:var(--color-ink-900)]",
                       )}
                     >
@@ -165,7 +165,7 @@ export function CampaignsView({ audience }: { audience: CampaignAudience }) {
                     {formatNumber(count)} pacientes
                   </p>
                   {active && (
-                    <span className="absolute right-3 top-3 rounded-full bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[color:var(--color-ink-900)] shadow-sm">
+                    <span className="absolute right-3 top-3 rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[color:var(--color-ink-900)] shadow-sm">
                       Activa
                     </span>
                   )}
@@ -229,12 +229,12 @@ export function CampaignsView({ audience }: { audience: CampaignAudience }) {
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden border-white/70 bg-gradient-to-br from-[#fffaeb] via-[#fff5f1] to-[#f5f3ff]">
+        <Card className="relative overflow-hidden border-white/70 bg-gradient-to-br from-[#effdf6] via-[#e6f4f1] to-[#f5f3ff]">
           <span
             aria-hidden
             className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-60 blur-3xl"
             style={{
-              background: "radial-gradient(circle, rgba(255,138,91,0.45) 0%, transparent 60%)",
+              background: "radial-gradient(circle, rgba(13,148,136,0.45) 0%, transparent 60%)",
             }}
           />
           <span

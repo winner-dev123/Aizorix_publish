@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -14,6 +15,8 @@ import {
   Bot,
   Sparkles,
   ArrowUpRight,
+  Menu,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { AizorixLogo } from "@/components/brand/aizorix-logo";
@@ -118,20 +121,99 @@ export function CrmSidebar({
     (n) => !n.moduleKey || !activeSet || activeSet.has(n.moduleKey),
   );
 
-  return (
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-[color:var(--color-ink-100)] bg-white/85 backdrop-blur-xl md:flex">
-      <div className="flex h-16 items-center px-5">
-        <Link href="/app" className="transition hover:opacity-90">
-          <AizorixLogo />
-        </Link>
-      </div>
+  // Mobile-only open/close state. On `md`+ screens the sidebar is always
+  // in document flow (sticky column), so `open` is irrelevant — the
+  // translate classes are overridden by `md:translate-x-0`.
+  const [open, setOpen] = useState(false);
 
-      <nav className="flex-1 overflow-y-auto px-3 pb-3">
+  // Lock body scroll while the mobile overlay is open so the page below
+  // doesn't bleed through inertial-scroll the user's thumb generates.
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  // Close on any nav link click via delegation — fires synchronously before
+  // the route change, so the overlay's gone by the time the new page paints.
+  const closeOnLinkClick = (e: React.MouseEvent<HTMLElement>) => {
+    if ((e.target as HTMLElement).closest("a[href]")) setOpen(false);
+  };
+
+  return (
+    <>
+      {/* Hamburger trigger — fixed top-left on mobile, hidden when the
+          overlay is open and on desktop. z-40 sits above the topbar (z-20)
+          and below the open sidebar (z-50). */}
+      {!open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Abrir menú"
+          className="fixed left-3 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-ink-100)] bg-white text-[color:var(--color-ink-700)] shadow-sm md:hidden"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      )}
+
+      {/* Backdrop for the mobile overlay. Click to close. */}
+      {open && (
+        <button
+          type="button"
+          aria-label="Cerrar menú"
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+        />
+      )}
+
+      <aside
+        onClick={closeOnLinkClick}
+        className={cn(
+          // Dark navy shell — mirrors the Aizorix AI landing mock: deep
+          // ink background, subtle violet bleed at the top, white nav text.
+          "h-screen w-64 shrink-0 flex-col border-r border-white/5 text-white",
+          "bg-gradient-to-b from-[#0f0d1a] via-[#11102a] to-[#0a0916]",
+          // Mobile: fixed overlay, slides in from left.
+          "fixed inset-y-0 left-0 z-50 flex transition-transform duration-200 ease-out",
+          open ? "translate-x-0 shadow-2xl" : "-translate-x-full",
+          // Desktop: in document flow as a sticky column, always visible.
+          "md:sticky md:top-0 md:z-auto md:flex md:translate-x-0 md:shadow-none",
+        )}
+      >
+        {/* Subtle violet aurora at the top of the sidebar */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -left-12 -top-12 h-48 w-48 rounded-full opacity-40 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(139,92,246,0.45) 0%, transparent 65%)",
+          }}
+        />
+
+        <div className="relative flex h-16 items-center justify-between px-5">
+          <Link href="/app" className="transition hover:opacity-90" onClick={() => setOpen(false)}>
+            <AizorixLogo />
+          </Link>
+          {/* Close button — mobile only. */}
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Cerrar menú"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white/60 transition hover:bg-white/10 hover:text-white md:hidden"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+      <nav className="relative flex-1 overflow-y-auto px-3 pb-3">
         {GROUPS.map((group) => {
           const items = nav.filter((n) => n.group === group);
           return (
             <div key={group} className="mt-5 first:mt-2">
-              <p className="px-2.5 pb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--color-ink-400)]">
+              <p className="px-2.5 pb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">
                 {group}
               </p>
               <ul className="space-y-0.5">
@@ -144,31 +226,39 @@ export function CrmSidebar({
                       <Link
                         href={item.href}
                         className={cn(
-                          "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                          "group relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300",
                           active
-                            ? "bg-gradient-to-r from-[#fffaeb] via-[#fff5f1] to-white text-[color:var(--color-ink-900)] shadow-[0_4px_14px_-6px_rgba(255,138,91,0.30)] ring-1 ring-[color:var(--color-brand-200)]/60"
-                            : "text-[color:var(--color-ink-600)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-ink-900)]",
+                            ? "bg-gradient-to-r from-[#7c3aed] via-[#6d28d9] to-[#5b21b6] text-white shadow-[0_8px_22px_-10px_rgba(124,58,237,0.65)]"
+                            : "text-white/70 hover:bg-white/[0.07] hover:text-white hover:translate-x-0.5",
                         )}
                       >
+                        {/* Glow halo on active item (subtle, decorative) */}
                         {active && (
-                          <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 -translate-x-1.5 rounded-full bg-gradient-to-b from-[#ffd24a] to-[#ff8a5b]" />
+                          <span
+                            aria-hidden
+                            className="pointer-events-none absolute -right-6 top-1/2 h-12 w-12 -translate-y-1/2 rounded-full opacity-60 blur-2xl"
+                            style={{
+                              background:
+                                "radial-gradient(circle, rgba(196,181,253,0.65) 0%, transparent 65%)",
+                            }}
+                          />
                         )}
                         <item.icon
                           className={cn(
-                            "h-4 w-4 shrink-0 transition",
+                            "relative h-4 w-4 shrink-0 transition-transform duration-300",
                             active
-                              ? "text-[color:var(--color-coral-500)]"
-                              : "text-[color:var(--color-ink-500)] group-hover:text-[color:var(--color-ink-900)]",
+                              ? "text-white"
+                              : "text-white/55 group-hover:text-white group-hover:scale-110",
                           )}
                         />
-                        <span className="flex-1 truncate">{item.label}</span>
+                        <span className="relative flex-1 truncate">{item.label}</span>
                         {item.badge && (
                           <span
                             className={cn(
-                              "rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none",
+                              "relative rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none",
                               active
-                                ? "bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] text-[color:var(--color-ink-900)]"
-                                : "bg-[color:var(--color-ink-900)] text-white",
+                                ? "bg-white text-[#6d28d9]"
+                                : "bg-[#7c3aed] text-white",
                             )}
                           >
                             {item.badge}
@@ -184,33 +274,33 @@ export function CrmSidebar({
         })}
       </nav>
 
-      {/* Upgrade card — bright */}
-      <div className="m-3 mt-0">
-        <div className="relative overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-[color:var(--color-brand-100)] via-[color:var(--color-coral-100)] to-[color:var(--color-lavender-100)] p-4 shadow-[var(--shadow-sm)]">
+      {/* Clinic info card — violet glass on dark */}
+      <div className="relative m-3 mt-0">
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-md">
           <span
-            className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-50 blur-2xl"
+            className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-60 blur-2xl"
             style={{
               background:
-                "radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 60%)",
+                "radial-gradient(circle, rgba(139,92,246,0.55) 0%, transparent 65%)",
             }}
           />
           <div className="relative">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[color:var(--color-coral-500)]">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-brand-300)]">
               <Sparkles className="h-3.5 w-3.5" /> Tu clínica
             </div>
-            <p className="mt-2 max-w-[180px] truncate text-sm font-bold text-[color:var(--color-ink-900)]">
+            <p className="mt-2 max-w-[180px] truncate text-sm font-bold text-white">
               {clinicName}
             </p>
-            <p className="text-xs text-[color:var(--color-ink-600)]">
+            <p className="text-xs text-white/55">
               {treatmentCount} {treatmentCount === 1 ? "tratamiento" : "tratamientos"} ·{" "}
               {technicianCount} {technicianCount === 1 ? "técnico/a" : "técnicos"}
             </p>
-            <p className="text-xs text-[color:var(--color-ink-600)]">
+            <p className="text-xs text-white/55">
               {userCount} {userCount === 1 ? "empleado/a activo/a" : "empleados activos"}
             </p>
             <Link
               href="/app/settings"
-              className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[color:var(--color-coral-500)] transition hover:text-[color:var(--color-coral-400)]"
+              className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[color:var(--color-brand-300)] transition hover:text-white"
             >
               Ajustes <ArrowUpRight className="h-3 w-3" />
             </Link>
@@ -218,5 +308,6 @@ export function CrmSidebar({
         </div>
       </div>
     </aside>
+    </>
   );
 }

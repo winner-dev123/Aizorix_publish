@@ -25,17 +25,27 @@ export function NewAppointmentForm({
   technicians,
   /** Browser-local "now" rounded up to the next slot, used as the input's min value. */
   minStartsAtLocal,
+  /** Optional prefill (e.g. when arriving from a patient's profile via ?patientId=…). */
+  defaultPatientId,
 }: {
   patients: PatientOption[];
   treatments: TreatmentOption[];
   technicians: TechnicianOption[];
   minStartsAtLocal: string;
+  defaultPatientId?: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const [patientId, setPatientId] = useState<string>(patients[0]?.id ?? "");
+  // Honor defaultPatientId only when it matches a row in the picker — the
+  // server already validates clinic scope, but this avoids selecting a
+  // non-existent option client-side.
+  const initialPatientId =
+    defaultPatientId && patients.some((p) => p.id === defaultPatientId)
+      ? defaultPatientId
+      : patients[0]?.id ?? "";
+  const [patientId, setPatientId] = useState<string>(initialPatientId);
   const [treatmentId, setTreatmentId] = useState<string>(treatments[0]?.id ?? "");
   const [technicianId, setTechnicianId] = useState<string>(technicians[0]?.id ?? "");
   const [startsAtLocal, setStartsAtLocal] = useState<string>(minStartsAtLocal);

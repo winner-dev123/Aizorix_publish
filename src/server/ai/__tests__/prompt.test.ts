@@ -3,7 +3,11 @@
  * and guidance branches added in Phase 6.2 plus the unchanged default.
  */
 import { describe, expect, it } from "vitest";
-import { buildSystemPrompt } from "../prompt";
+import {
+  DEFAULT_PROMPT_TEMPLATE,
+  buildSystemPrompt,
+  renderPromptTemplate,
+} from "../prompt";
 
 const BASE = {
   clinic: { name: "Test Clinic", timezone: "Europe/Madrid" as const },
@@ -103,5 +107,94 @@ describe("buildSystemPrompt", () => {
     });
     expect(p).toContain("\n  Viene con su madre.\n");
     expect(p).not.toContain("  Viene con su madre.  ");
+  });
+
+  it("uses DEFAULT_PROMPT_TEMPLATE when aiSystemPrompt is null/undefined", () => {
+    const a = buildSystemPrompt(BASE);
+    const b = buildSystemPrompt({
+      ...BASE,
+      clinic: { ...BASE.clinic, aiSystemPrompt: null },
+    });
+    expect(a).toBe(b);
+  });
+
+  it("substitutes a custom aiSystemPrompt template verbatim", () => {
+    const p = buildSystemPrompt({
+      ...BASE,
+      clinic: {
+        ...BASE.clinic,
+        aiSystemPrompt:
+          "Eres el bot de {{clinic_name}} en {{timezone}}. Habla así: {{tone_instructions}}",
+      },
+    });
+    expect(p).toBe(
+      "Eres el bot de Test Clinic en Europe/Madrid. Habla así: Usa un tono cercano pero profesional. Evita los emojis.",
+    );
+    // Make sure we did NOT also append the default — the override is the
+    // ENTIRE prompt.
+    expect(p).not.toContain("OBJETIVO");
+    expect(p).not.toContain("MANEJO DE FECHAS");
+  });
+
+  it("treats an empty/whitespace aiSystemPrompt as 'use default'", () => {
+    const a = buildSystemPrompt(BASE);
+    const b = buildSystemPrompt({
+      ...BASE,
+      clinic: { ...BASE.clinic, aiSystemPrompt: "" },
+    });
+    const c = buildSystemPrompt({
+      ...BASE,
+      clinic: { ...BASE.clinic, aiSystemPrompt: "   \n  \t" },
+    });
+    expect(b).toBe(a);
+    expect(c).toBe(a);
+  });
+
+  it("leaves unknown placeholders untouched (allows literal {{example}})", () => {
+    const p = buildSystemPrompt({
+      ...BASE,
+      clinic: {
+        ...BASE.clinic,
+        aiSystemPrompt: "Hola {{clinic_name}}, valor {{not_a_real_key}} sigue ahí.",
+      },
+    });
+    expect(p).toBe("Hola Test Clinic, valor {{not_a_real_key}} sigue ahí.");
+  });
+});
+
+describe("renderPromptTemplate", () => {
+  it("replaces every occurrence of a known variable", () => {
+    const out = renderPromptTemplate("{{a}} + {{a}} = 2*{{a}}", { a: "1" });
+    expect(out).toBe("1 + 1 = 2*1");
+  });
+
+  it("leaves unknown placeholders untouched", () => {
+    const out = renderPromptTemplate("hola {{nope}}", {});
+    expect(out).toBe("hola {{nope}}");
+  });
+
+  it("does not recurse on values that contain placeholders", () => {
+    // Prevents an injection where a value like "{{secret}}" would expand
+    // further. The String.prototype.replace approach is non-recursive.
+    const out = renderPromptTemplate("{{a}}", { a: "{{b}}", b: "danger" });
+    expect(out).toBe("{{b}}");
+  });
+
+  it("DEFAULT_PROMPT_TEMPLATE includes every documented placeholder", () => {
+    // Hard guarantee: removing or renaming a placeholder requires updating
+    // the template too. This test fails loud if the editor's "available
+    // variables" list goes out of sync with the default content.
+    for (const key of [
+      "clinic_name",
+      "timezone",
+      "now",
+      "tone_instructions",
+      "guidance_block",
+      "patient_context",
+      "memory_block",
+      "patient_notes_block",
+    ]) {
+      expect(DEFAULT_PROMPT_TEMPLATE).toContain(`{{${key}}}`);
+    }
   });
 });

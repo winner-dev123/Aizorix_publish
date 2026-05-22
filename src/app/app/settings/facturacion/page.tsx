@@ -58,7 +58,7 @@ export default async function FacturacionSettingsPage() {
               className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-50 blur-3xl"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(245,200,66,0.55) 0%, transparent 60%)",
+                  "radial-gradient(circle, rgba(0,128,105,0.55) 0%, transparent 60%)",
               }}
             />
             <div className="relative flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

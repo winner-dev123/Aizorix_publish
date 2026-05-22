@@ -27,7 +27,7 @@ export function StepSector() {
               className={cn(
                 "group relative flex flex-col overflow-hidden rounded-2xl border bg-white p-5 text-left card-hover anim-fade-up",
                 selected
-                  ? "border-[color:var(--color-brand-400)] bg-gradient-to-br from-[color:var(--color-brand-50)] to-white shadow-[0_18px_44px_-18px_rgba(245,200,66,0.55)] ring-4 ring-[color:var(--color-brand-200)]/60"
+                  ? "border-[color:var(--color-brand-400)] bg-gradient-to-br from-[color:var(--color-brand-50)] to-white shadow-[0_18px_44px_-18px_rgba(0,128,105,0.55)] ring-4 ring-[color:var(--color-brand-200)]/60"
                   : "border-[color:var(--color-ink-100)] hover:border-[color:var(--color-ink-300)]",
               )}
               style={{ animationDelay: `${i * 20}ms` }}
@@ -38,7 +38,7 @@ export function StepSector() {
                   className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-60 blur-3xl"
                   style={{
                     background:
-                      "radial-gradient(circle, rgba(245,200,66,0.5) 0%, transparent 60%)",
+                      "radial-gradient(circle, rgba(0,128,105,0.5) 0%, transparent 60%)",
                   }}
                 />
               )}
@@ -48,7 +48,7 @@ export function StepSector() {
                     className={cn(
                       "flex h-12 w-12 items-center justify-center rounded-2xl shadow-[var(--shadow-sm)] transition-all",
                       selected
-                        ? "bg-gradient-to-br from-[#ffd24a] via-[#f5c842] to-[#ff8a5b] text-[color:var(--color-ink-900)]"
+                        ? "bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)]"
                         : "bg-gradient-to-br from-[color:var(--color-surface-2)] to-white text-[color:var(--color-coral-500)] ring-1 ring-[color:var(--color-ink-100)] group-hover:scale-105",
                     )}
                   >
@@ -76,7 +76,7 @@ export function StepSector() {
           className="pointer-events-none absolute -right-12 -bottom-12 h-40 w-40 rounded-full opacity-50 blur-3xl"
           style={{
             background:
-              "radial-gradient(circle, rgba(245,200,66,0.4) 0%, transparent 60%)",
+              "radial-gradient(circle, rgba(0,128,105,0.4) 0%, transparent 60%)",
           }}
         />
         <div className="relative flex flex-wrap items-center justify-between gap-4">

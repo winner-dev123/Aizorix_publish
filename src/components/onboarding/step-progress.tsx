@@ -26,7 +26,7 @@ export function StepProgress({ current }: StepProgressProps) {
             <span className="text-[color:var(--color-brand-600)]">{pct}%</span>
           </p>
         </div>
-        <span className="hidden rounded-full bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[color:var(--color-ink-900)] shadow-sm sm:inline-block">
+        <span className="hidden rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[color:var(--color-ink-900)] shadow-sm sm:inline-block">
           {pct}%
         </span>
       </div>
@@ -34,7 +34,7 @@ export function StepProgress({ current }: StepProgressProps) {
       {/* Bar */}
       <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--color-ink-100)]">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-[#ffd24a] via-[#f5c842] to-[#ff8a5b] transition-all duration-700"
+          className="h-full rounded-full bg-gradient-to-r from-[#25d366] via-[#14b87a] to-[#0d9488] transition-all duration-700"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -61,7 +61,7 @@ export function StepProgress({ current }: StepProgressProps) {
                     className={cn(
                       "flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-black transition-all duration-300",
                       status === "current" &&
-                        "bg-gradient-to-br from-[#ffd24a] via-[#f5c842] to-[#ff8a5b] text-[color:var(--color-ink-900)] shadow-[0_10px_22px_-6px_rgba(255,138,91,0.55)] ring-4 ring-white",
+                        "bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_10px_22px_-6px_rgba(13,148,136,0.55)] ring-4 ring-white",
                       status === "done" &&
                         "bg-gradient-to-br from-[#7eddb4] to-[#20bf7c] text-white shadow-[0_6px_14px_-6px_rgba(32,191,124,0.55)]",
                       status === "upcoming" &&

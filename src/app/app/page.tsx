@@ -6,6 +6,7 @@ import {
   Calendar,
   CheckCircle2,
   MessageCircle,
+  ShieldCheck,
   Sparkles,
   TrendingUp,
   Users,
@@ -14,6 +15,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
 import { getHomeDashboard } from "@/server/dashboard/queries";
+import { getRecentAuditLogs } from "@/server/audit";
 import { StatCard } from "@/components/crm/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,40 +36,49 @@ export default async function CrmDashboardPage() {
   const data = await getHomeDashboard(clinicId);
   const userName = session.user.name?.split(" ")[0] ?? session.user.email?.split("@")[0] ?? "";
 
+  // Audit log preview is gated to OWNER/ADMIN — staff users see the full
+  // dashboard without the operational-history surface.
+  const canViewAudit = session.user.role === "OWNER" || session.user.role === "ADMIN";
+  const recentAudit = canViewAudit ? (await getRecentAuditLogs(clinicId, 5)).rows : [];
+
   return (
     <div className="space-y-8">
-      <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#fffaeb] via-[#fff5f1] to-[#f5f3ff] p-7 shadow-[var(--shadow-md)]">
+      <div className="relative overflow-hidden rounded-3xl border border-white/30 bg-gradient-to-br from-[#1e1b4b] via-[#3730a3] to-[#5b21b6] p-7 text-white shadow-[0_24px_60px_-20px_rgba(76,29,149,0.5)]">
         <span
           aria-hidden
-          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-70 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(255,210,74,0.7) 0%, transparent 60%)" }}
+          className="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full opacity-60 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(167,139,250,0.6) 0%, transparent 60%)" }}
         />
         <span
           aria-hidden
-          className="pointer-events-none absolute -bottom-24 left-1/3 h-56 w-56 rounded-full opacity-50 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(155,140,255,0.5) 0%, transparent 60%)" }}
+          className="pointer-events-none absolute -bottom-24 left-1/3 h-72 w-72 rounded-full opacity-40 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(56,189,248,0.45) 0%, transparent 60%)" }}
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent"
         />
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <Badge variant="brand" className="mb-3">
+            <Badge variant="glass-violet" className="mb-3">
               <Sparkles className="h-3 w-3" /> {clinic.name}
             </Badge>
-            <h2 className="text-2xl font-black tracking-[-0.02em] text-[color:var(--color-ink-900)] sm:text-3xl">
+            <h2 className="text-2xl font-black tracking-[-0.02em] text-white sm:text-3xl">
               {userName ? `Hola, ${userName} · ` : ""}tu CRM está activo
             </h2>
-            <p className="mt-1 max-w-xl text-sm text-[color:var(--color-ink-600)]">
+            <p className="mt-1 max-w-xl text-sm text-white/75">
               {data.aiKpis.conversations > 0
                 ? `La IA ha gestionado ${data.aiKpis.conversations} conversaciones en los últimos 30 días y creado ${data.aiKpis.appointmentsCreated} citas en automático.`
                 : "Aún no hay conversaciones. Conecta WhatsApp para empezar a recibir mensajes."}
             </p>
           </div>
           <div className="flex flex-wrap gap-2.5">
-            <Button asChild variant="accent" size="md">
+            <Button asChild variant="primary" size="md" className="bg-white text-[#6d28d9] hover:bg-white/90 hover:text-[#5b21b6] shadow-[0_10px_24px_-12px_rgba(0,0,0,0.4)]">
               <Link href="/app/ai">
                 <Bot /> Probar IA
               </Link>
             </Button>
-            <Button asChild variant="outline" size="md">
+            <Button asChild variant="glass" size="md" className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/50">
               <Link href="/app/campaigns">
                 <TrendingUp /> Nueva campaña
               </Link>
@@ -145,7 +156,7 @@ export default async function CrmDashboardPage() {
                   href="/app/agenda"
                   className="group flex items-center gap-4 rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-3.5 transition-all hover:-translate-y-0.5 hover:border-[color:var(--color-ink-200)] hover:shadow-md"
                 >
-                  <div className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] text-[color:var(--color-ink-900)] shadow-[var(--shadow-sm)]">
+                  <div className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[var(--shadow-sm)]">
                     <span className="text-[9px] font-bold uppercase tracking-wider opacity-80">
                       {monthAbbr}
                     </span>
@@ -189,7 +200,7 @@ export default async function CrmDashboardPage() {
             )}
             {data.recentConversations.map((c, i) => {
               const palette = [
-                "from-[#ffd24a] to-[#ff8a5b]",
+                "from-[#25d366] to-[#0d9488]",
                 "from-[#9b8cff] to-[#7c6cf5]",
                 "from-[#4cd49a] to-[#20bf7c]",
                 "from-[#5aa6ff] to-[#2f88ff]",
@@ -223,7 +234,7 @@ export default async function CrmDashboardPage() {
                     <p className="truncate text-xs text-[color:var(--color-ink-500)]">{preview}</p>
                   </div>
                   {c.requiresHuman && (
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] px-1.5 text-[10px] font-black text-[color:var(--color-ink-900)] shadow-sm">
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] px-1.5 text-[10px] font-black text-[color:var(--color-ink-900)] shadow-sm">
                       !
                     </span>
                   )}
@@ -277,9 +288,76 @@ export default async function CrmDashboardPage() {
           <Mini label="Ingresos atribuidos" value={formatEUR(data.aiKpis.revenue)} tint="brand" />
         </CardContent>
       </Card>
+
+      {canViewAudit && recentAudit.length > 0 && (
+        <Card className="overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-[color:var(--color-brand-500)]" />
+              Cambios recientes
+            </CardTitle>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/app/settings/audit">
+                Ver todo <ArrowRight />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            {recentAudit.map((log) => {
+              const label = AUDIT_LABEL[log.action] ?? log.action;
+              const actor = log.actor?.name ?? log.actor?.email ?? "—";
+              return (
+                <div
+                  key={log.id}
+                  className="flex items-center gap-3 rounded-xl border border-[color:var(--color-ink-100)] bg-[color:var(--color-surface-1)] p-2.5 text-xs"
+                >
+                  <Badge variant="outline">{label}</Badge>
+                  <span className="min-w-0 flex-1 truncate text-[color:var(--color-ink-700)]">
+                    <span className="font-semibold">{actor}</span>
+                    {log.target ? (
+                      <span className="text-[color:var(--color-ink-500)]"> · {log.target}</span>
+                    ) : null}
+                  </span>
+                  <span className="shrink-0 text-[10px] text-[color:var(--color-ink-400)]">
+                    {formatInTimeZone(log.createdAt, tz, "HH:mm")}
+                  </span>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
+
+// Human label map shared with /app/settings/audit. Unknown action keys fall
+// through to the raw key string.
+const AUDIT_LABEL: Record<string, string> = {
+  "clinic.updated": "Datos del negocio",
+  "ai_config.updated": "Config IA",
+  "ai_prompt.updated": "Prompt IA editado",
+  "ai_prompt.reset": "Prompt IA restablecido",
+  "business_hours.updated": "Horarios",
+  "modules.updated": "Módulos",
+  "staff.invited": "Empleado invitado",
+  "staff.invite_resent": "Enlace reenviado",
+  "staff.activated": "Empleado reactivado",
+  "staff.deactivated": "Empleado desactivado",
+  "staff.role_changed": "Rol cambiado",
+  "manual_reply.sent": "Respuesta manual",
+  "handoff.resolved": "Escalada resuelta",
+  "bot.paused": "Bot pausado",
+  "bot.resumed": "Bot reactivado",
+  "patient.created": "Paciente creado",
+  "patient.updated": "Paciente editado",
+  "patient.notes_updated": "Notas paciente",
+  "memory.upserted": "Memoria guardada",
+  "memory.deleted": "Memoria borrada",
+  "appointment.created": "Cita creada",
+  "appointment.cancelled": "Cita cancelada",
+  "appointment.rescheduled": "Cita movida",
+};
 
 const TINTS: Record<string, { card: string; delta: string }> = {
   mint: {
@@ -295,7 +373,7 @@ const TINTS: Record<string, { card: string; delta: string }> = {
     delta: "text-[color:var(--color-lavender-500)]",
   },
   brand: {
-    card: "from-[#fffaeb] to-white ring-[color:var(--color-brand-100)]",
+    card: "from-[#effdf6] to-white ring-[color:var(--color-brand-100)]",
     delta: "text-[color:var(--color-coral-500)]",
   },
 };

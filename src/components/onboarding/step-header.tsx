@@ -10,7 +10,7 @@ interface StepHeaderProps {
 export function StepHeader({ num, title, description, className }: StepHeaderProps) {
   return (
     <div className={cn("flex items-start gap-5", className)}>
-      <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#ffd24a] via-[#f5c842] to-[#ff8a5b] text-xl font-black text-[color:var(--color-ink-900)] shadow-[0_14px_36px_-12px_rgba(255,138,91,0.55)]">
+      <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-xl font-black text-[color:var(--color-ink-900)] shadow-[0_14px_36px_-12px_rgba(13,148,136,0.55)]">
         <span
           aria-hidden
           className="absolute inset-[3px] rounded-[15px] opacity-70"

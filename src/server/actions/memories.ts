@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
+import { logAudit } from "@/server/audit";
 
 type ActionResult<T = undefined> = T extends undefined
   ? { ok: true } | { ok: false; error: { code: string; message: string } }
@@ -71,6 +72,14 @@ export async function upsertMemoryAction(input: UpsertMemoryInput): Promise<Acti
     },
   });
 
+  await logAudit({
+    clinicId,
+    actorUserId: session.user.id,
+    action: "memory.upserted",
+    target: `memory:${patient.id}:${parsed.data.key}`,
+    metadata: { key: parsed.data.key },
+  });
+
   revalidatePath(`/app/clients/${patient.id}`);
   return { ok: true };
 }
@@ -107,6 +116,14 @@ export async function deleteMemoryAction(input: DeleteMemoryInput): Promise<Acti
 
   await prisma.aiMemory.deleteMany({
     where: { patientId: patient.id, key: parsed.data.key },
+  });
+
+  await logAudit({
+    clinicId,
+    actorUserId: session.user.id,
+    action: "memory.deleted",
+    target: `memory:${patient.id}:${parsed.data.key}`,
+    metadata: { key: parsed.data.key },
   });
 
   revalidatePath(`/app/clients/${patient.id}`);

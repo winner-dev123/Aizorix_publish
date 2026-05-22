@@ -14,6 +14,8 @@ import {
 
 export const revalidate = 0; // Always fresh — the form is the user's primary action.
 
+type SearchParams = Promise<{ patientId?: string }>;
+
 /** Round up to the next 15-minute boundary in the clinic's timezone, format as YYYY-MM-DDTHH:mm. */
 function nextSlotLocal(timezone: string, leadMinutes: number): string {
   const now = new Date();
@@ -22,10 +24,20 @@ function nextSlotLocal(timezone: string, leadMinutes: number): string {
   return formatInTimeZone(rounded, timezone, "yyyy-MM-dd'T'HH:mm");
 }
 
-export default async function NewAppointmentPage() {
+function patientLabel(p: { firstName: string; lastName: string | null }) {
+  return `${p.firstName}${p.lastName ? ` ${p.lastName}` : ""}`;
+}
+
+export default async function NewAppointmentPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const session = await auth();
   if (!session?.user) redirect("/signin");
   const clinicId = session.user.clinicId;
+
+  const { patientId: requestedPatientId } = await searchParams;
 
   const clinic = await prisma.clinic.findUnique({
     where: { id: clinicId },
@@ -52,11 +64,30 @@ export default async function NewAppointmentPage() {
     }),
   ]);
 
-  const patients: PatientOption[] = patientsRaw.map((p) => ({
+  // If the URL specified a patient that isn't in the top-100 most-recent
+  // list (because they're older or there are more than 100 patients in
+  // the clinic), fetch that one explicitly and prepend it. Clinic-scoped
+  // so a malicious `?patientId=…` can't reach another tenant.
+  let extraPatient: { id: string; firstName: string; lastName: string | null; phone: string } | null = null;
+  if (requestedPatientId && !patientsRaw.some((p) => p.id === requestedPatientId)) {
+    extraPatient = await prisma.patient.findFirst({
+      where: { id: requestedPatientId, clinicId },
+      select: { id: true, firstName: true, lastName: true, phone: true },
+    });
+  }
+
+  const patients: PatientOption[] = (extraPatient ? [extraPatient, ...patientsRaw] : patientsRaw).map((p) => ({
     id: p.id,
-    label: `${p.firstName}${p.lastName ? ` ${p.lastName}` : ""}`,
+    label: patientLabel(p),
     phone: p.phone,
   }));
+
+  // Only honor the prefill when the patient actually exists for this clinic.
+  const defaultPatientId =
+    requestedPatientId && patients.some((p) => p.id === requestedPatientId)
+      ? requestedPatientId
+      : undefined;
+
   const treatments: TreatmentOption[] = treatmentsRaw;
   const technicians: TechnicianOption[] = techniciansRaw;
 
@@ -88,6 +119,7 @@ export default async function NewAppointmentPage() {
             treatments={treatments}
             technicians={technicians}
             minStartsAtLocal={minStartsAtLocal}
+            defaultPatientId={defaultPatientId}
           />
         </CardContent>
       </Card>

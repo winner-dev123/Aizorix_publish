@@ -118,6 +118,7 @@ async function orchestrateInner(
       timezone: clinic.timezone,
       aiTone: clinic.aiTone,
       aiGuidance: clinic.aiGuidance,
+      aiSystemPrompt: clinic.aiSystemPrompt,
     },
     externalChatId: input.externalChatId,
     patientId: patient?.id ?? null,

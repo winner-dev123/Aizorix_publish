@@ -23,13 +23,13 @@ export function StepReady() {
   return (
     <div className="flex flex-col gap-7">
       {/* Celebration banner — bright */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#fffaeb] via-[#fff5f1] to-[#f5f3ff] p-8 shadow-[var(--shadow-lg)]">
+      <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#effdf6] via-[#e6f4f1] to-[#f5f3ff] p-8 shadow-[var(--shadow-lg)]">
         <span
           aria-hidden
           className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-80 blur-3xl"
           style={{
             background:
-              "radial-gradient(circle, rgba(255,210,74,0.6) 0%, transparent 60%)",
+              "radial-gradient(circle, rgba(37,211,102,0.6) 0%, transparent 60%)",
           }}
         />
         <span
@@ -45,11 +45,11 @@ export function StepReady() {
           className="pointer-events-none absolute -left-12 top-10 h-44 w-44 rounded-full opacity-50 blur-3xl"
           style={{
             background:
-              "radial-gradient(circle, rgba(255,138,91,0.4) 0%, transparent 60%)",
+              "radial-gradient(circle, rgba(13,148,136,0.4) 0%, transparent 60%)",
           }}
         />
         <div className="relative flex items-center gap-5">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffd24a] via-[#f5c842] to-[#ff8a5b] text-[color:var(--color-ink-900)] shadow-[0_14px_36px_-12px_rgba(255,138,91,0.6)]">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_14px_36px_-12px_rgba(13,148,136,0.6)]">
             <PartyPopper className="h-6 w-6" />
           </div>
           <div className="min-w-0">

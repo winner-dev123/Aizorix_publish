@@ -66,7 +66,7 @@ export function StepModules() {
                         className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-50 blur-2xl"
                         style={{
                           background:
-                            "radial-gradient(circle, rgba(245,200,66,0.5) 0%, transparent 60%)",
+                            "radial-gradient(circle, rgba(0,128,105,0.5) 0%, transparent 60%)",
                         }}
                       />
                     )}
@@ -76,7 +76,7 @@ export function StepModules() {
                           className={cn(
                             "flex h-11 w-11 items-center justify-center rounded-xl shadow-[var(--shadow-sm)] transition",
                             active
-                              ? "bg-gradient-to-br from-[#ffd24a] via-[#f5c842] to-[#ff8a5b] text-[color:var(--color-ink-900)]"
+                              ? "bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)]"
                               : "bg-[color:var(--color-ink-50)] text-[color:var(--color-ink-500)]",
                           )}
                         >
@@ -113,13 +113,13 @@ export function StepModules() {
         ))}
       </div>
 
-      <div className="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#fffaeb] via-[#fff5f1] to-[#f5f3ff] p-5 shadow-[var(--shadow-xl)] backdrop-blur">
+      <div className="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#effdf6] via-[#e6f4f1] to-[#f5f3ff] p-5 shadow-[var(--shadow-xl)] backdrop-blur">
         <span
           aria-hidden
           className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-60 blur-3xl"
           style={{
             background:
-              "radial-gradient(circle, rgba(255,138,91,0.45) 0%, transparent 60%)",
+              "radial-gradient(circle, rgba(13,148,136,0.45) 0%, transparent 60%)",
           }}
         />
         <span

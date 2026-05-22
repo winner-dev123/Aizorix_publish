@@ -79,7 +79,7 @@ export default async function OnboardingStepPage({
           className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full opacity-40 blur-3xl"
           style={{
             background:
-              "radial-gradient(circle, rgba(245,200,66,0.4) 0%, transparent 60%)",
+              "radial-gradient(circle, rgba(0,128,105,0.4) 0%, transparent 60%)",
           }}
         />
         <div className="relative">

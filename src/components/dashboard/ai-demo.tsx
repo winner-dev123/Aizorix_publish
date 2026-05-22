@@ -46,20 +46,17 @@ interface CapturedLead {
   treatment?: string;
 }
 
-function foldAccents(s: string) {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-}
-
-function detectTreatment(text: string, treatments: DemoTreatment[]): DemoTreatment | undefined {
-  const t = foldAccents(text);
-  for (const tr of treatments) {
-    const slug = foldAccents(tr.slug);
-    const name = foldAccents(tr.name);
-    if (slug && t.includes(slug)) return tr;
-    if (name && t.includes(name)) return tr;
-  }
-  return undefined;
-}
+import {
+  detectTreatment,
+  extractEmail,
+  extractPhone,
+  firstName,
+  foldAccents,
+  hasBookingIntent,
+  hasConfirmation,
+  parseBareNameAttempt,
+  pickFresh,
+} from "@/lib/ai-demo-heuristics";
 
 function describeTreatment(tr: DemoTreatment): string {
   if (tr.botMessage) return tr.botMessage;
@@ -70,19 +67,6 @@ function describeTreatment(tr: DemoTreatment): string {
   if (tr.price != null) pieces.push(`desde ${formatEUR(tr.price)}`);
   parts.push(pieces.join(" · ") + ".");
   return parts.join(" ");
-}
-
-function extractPhone(text: string) {
-  const m = text.match(/(\+?\d[\d\s]{7,}\d)/);
-  return m?.[1]?.replace(/\s+/g, " ");
-}
-function extractEmail(text: string) {
-  const m = text.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
-  return m?.[0];
-}
-function extractName(text: string) {
-  const m = text.match(/me llamo ([\p{L} ]+)/iu) || text.match(/soy ([\p{L} ]+)/iu);
-  return m?.[1]?.trim();
 }
 
 export function AiDemo({
@@ -105,7 +89,10 @@ export function AiDemo({
   const [lead, setLead] = useState<CapturedLead>({});
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const [mode, setMode] = useState<"simulated" | "real">("simulated");
+  // Default to "real" — every new chat session hits OpenAI through the
+  // orchestrator. The simulated heuristic stays available behind the toggle
+  // for offline/no-cost testing, but it is no longer the first experience.
+  const [mode, setMode] = useState<"simulated" | "real">("real");
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const [appointmentCreated, setAppointmentCreated] = useState<{
@@ -140,70 +127,97 @@ export function AiDemo({
       return;
     }
 
+    // Accumulate every field we can extract from THIS message onto whatever
+    // we had captured before — we never lose state across turns.
     const newLead = { ...lead };
     const phone = extractPhone(text);
     if (phone && !newLead.phone) newLead.phone = phone;
     const email = extractEmail(text);
     if (email && !newLead.email) newLead.email = email;
-    const name = extractName(text);
+    const name = parseBareNameAttempt(text, { expectingName: !newLead.name });
     if (name && !newLead.name) newLead.name = name;
     const matched = detectTreatment(text, treatments);
     if (matched && !newLead.treatment) newLead.treatment = matched.name;
     setLead(newLead);
 
     const lower = foldAccents(text);
+    const recentBot = messages
+      .filter((m) => m.from === "ai")
+      .slice(-3)
+      .map((m) => m.text);
 
-    if (
-      lower.match(/(reserv|cita|agendar|hora)/) &&
-      newLead.treatment &&
-      newLead.name &&
-      newLead.phone
-    ) {
-      const date = new Date();
-      date.setDate(date.getDate() + 1);
-      date.setHours(17, 0, 0, 0);
-      setAppointmentCreated({
-        time: date.toLocaleString("es-ES", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        treatment: newLead.treatment,
-        name: newLead.name,
-      });
-      pushAI(
-        `¡Perfecto, ${newLead.name.split(" ")[0]}! He reservado una valoración previa para ${newLead.treatment} el ${date.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })} a las 17:00. Te he enviado la confirmación por WhatsApp. ¡Te esperamos! 💛`,
-      );
+    // ───── 1. Already booked? Acknowledge follow-ups gracefully.
+    if (appointmentCreated) {
+      if (hasBookingIntent(text) || hasConfirmation(text)) {
+        pushAI(
+          `Tu cita para ${appointmentCreated.treatment} sigue confirmada para ${appointmentCreated.time}. Si necesitas cambiarla, dime una nueva fecha y la muevo.`,
+        );
+      } else {
+        pushAI(
+          `Recuerda que ya tienes tu cita confirmada para ${appointmentCreated.treatment} el ${appointmentCreated.time}. ¿En qué más puedo ayudarte?`,
+        );
+      }
       return;
     }
 
+    // ───── 2. All three fields collected → BOOK NOW.
+    // Unconditional: if the lead is complete (name + phone + treatment),
+    // the user has provided everything we need. We no longer require an
+    // explicit "cita"/"reserva" word — providing all 3 IS the intent.
+    // This fixes the "the bot asks for my phone again after I gave it"
+    // class of bug where the booking gate failed and we fell through to
+    // the catch-all that re-asked for everything.
+    if (newLead.name && newLead.phone && newLead.treatment) {
+      bookSimulated(newLead.name, newLead.phone, newLead.treatment);
+      return;
+    }
+
+    // ───── 3. We just learned a treatment — describe it + ask only for
+    // what's still missing.
     if (matched) {
       let resp = describeTreatment(matched);
-      if (!newLead.name) {
-        resp +=
-          "\n\n¿Me dices tu nombre y un teléfono de contacto para reservarte la valoración previa?";
-      } else if (!newLead.phone) {
-        resp += `\n\n${newLead.name.split(" ")[0]}, ¿me confirmas un teléfono de contacto para enviarte la confirmación?`;
+      const missing = [
+        !newLead.name && "tu nombre",
+        !newLead.phone && "un teléfono de contacto",
+      ].filter(Boolean);
+      if (missing.length === 2) {
+        resp += "\n\n¿Me dices tu nombre y un teléfono de contacto y te reservo una valoración previa?";
+      } else if (missing.length === 1) {
+        resp += `\n\n${newLead.name ? firstName(newLead.name) + ", " : ""}¿me confirmas ${missing[0]} y te lo reservo?`;
       } else {
-        resp += "\n\n¿Te encaja mañana por la tarde a las 17:00 o prefieres otro día?";
+        resp += `\n\n${firstName(newLead.name!)}, te puedo reservar mañana a las 17:00 — ¿te encaja o prefieres otra hora?`;
       }
       pushAI(resp);
       return;
     }
 
-    if (name && !newLead.phone) {
-      pushAI(`¡Encantada, ${name.split(" ")[0]}! ¿Sobre qué tratamiento querías información?`);
+    // ───── 4. Booking intent + treatment missing → ask for treatment by name.
+    if (hasBookingIntent(text) && !newLead.treatment) {
+      const names = treatments.slice(0, 5).map((t) => t.name).join(", ");
+      pushAI(
+        `Claro${newLead.name ? `, ${firstName(newLead.name)}` : ""}. ¿Qué tratamiento quieres reservar? Tenemos ${names}${treatments.length > 5 ? " y más" : ""}.`,
+      );
       return;
     }
 
+    // ───── 5. They gave us a name but we don't know what they want yet.
+    if (name && !newLead.treatment) {
+      pushAI(
+        `¡Encantada, ${firstName(name)}! ¿Sobre qué tratamiento querías información o reservar?`,
+      );
+      return;
+    }
+
+    // ───── 6. They gave us a phone but we don't know what they want yet.
     if (phone && !newLead.treatment) {
-      pushAI("¡Genial, gracias! ¿Sobre qué tratamiento querías información o reservar?");
+      pushAI(
+        `¡Genial, gracias! ¿Sobre qué tratamiento querías información o reservar?`,
+      );
       return;
     }
 
-    if (lower.match(/(precio|coste|cuanto|cuanto vale)/)) {
+    // ───── 7. Pure-price question.
+    if (lower.match(/\b(precio|precios|coste|cuesta|cuanto|tarifa)\b/)) {
       const names = treatments.slice(0, 4).map((t) => t.name).join(", ");
       pushAI(
         `Los precios varían según el tratamiento. ¿Sobre cuál te gustaría que te informe? Tenemos ${names} y más.`,
@@ -211,15 +225,95 @@ export function AiDemo({
       return;
     }
 
-    if (lower.match(/(hola|buenos|buenas)/)) {
+    // ───── 8. Greeting.
+    if (lower.match(/\b(hola|buenos|buenas|hey|que tal|qué tal)\b/)) {
       pushAI(
         "¡Hola! ¿En qué tratamiento estás interesado/a? Puedo informarte de precios, duración o reservarte una valoración previa.",
       );
       return;
     }
 
+    // ───── 9. Confirmation — covers cases like "sí" / "vale" / "ok" when
+    // the user already gave us most details and the bot offered to book.
+    if (hasConfirmation(text) && newLead.name && newLead.treatment) {
+      // We need a phone to actually book. Ask only for that.
+      if (!newLead.phone) {
+        pushAI(
+          `Perfecto. Para confirmar la reserva, ${firstName(newLead.name)}, ¿me das un teléfono de contacto?`,
+        );
+        return;
+      }
+      bookSimulated(newLead.name, newLead.phone, newLead.treatment);
+      return;
+    }
+
+    // ───── 10. Generic fallback — but ALWAYS ask only for the fields that
+    // are actually missing, never re-ask for things we already captured.
+    const missing: string[] = [];
+    if (!newLead.name) missing.push("tu nombre");
+    if (!newLead.phone) missing.push("un teléfono de contacto");
+    if (!newLead.treatment) missing.push("el tratamiento que te interesa");
+
+    if (missing.length === 1) {
+      pushAI(
+        pickFresh(
+          [
+            `Solo necesito ${missing[0]} y te lo reservo enseguida.`,
+            `Para terminar, ¿me confirmas ${missing[0]}?`,
+            `Falta un detalle: ${missing[0]}. ¿Me lo pasas?`,
+          ],
+          recentBot,
+        ),
+      );
+      return;
+    }
+    if (missing.length === 2) {
+      pushAI(
+        pickFresh(
+          [
+            `Para reservarte, necesito ${missing[0]} y ${missing[1]}.`,
+            `¿Me puedes dar ${missing[0]} y ${missing[1]}? Con eso te lo reservo.`,
+          ],
+          recentBot,
+        ),
+      );
+      return;
+    }
+
     pushAI(
-      "Por supuesto. Para ayudarte mejor, ¿me podrías decir tu nombre, un teléfono de contacto y el tratamiento que te interesa?",
+      pickFresh(
+        [
+          "Por supuesto. Para ayudarte mejor, ¿me podrías decir tu nombre, un teléfono de contacto y el tratamiento que te interesa?",
+          "Claro. Cuéntame: ¿cómo te llamas, qué tratamiento te interesa y a qué número te puedo escribir?",
+          "Encantada de ayudarte. Para darte la mejor info necesito tu nombre, tu teléfono y el tratamiento que buscas.",
+        ],
+        recentBot,
+      ),
+    );
+  }
+
+  function bookSimulated(name: string, phone: string, treatment: string) {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    date.setHours(17, 0, 0, 0);
+    setAppointmentCreated({
+      time: date.toLocaleString("es-ES", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      treatment,
+      name,
+    });
+    const human = date.toLocaleDateString("es-ES", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+    pushAI(
+      `¡Perfecto, ${firstName(name)}! He reservado tu valoración previa de ${treatment} para el ${human} a las 17:00. Te enviaré la confirmación al ${phone}. 💛`,
     );
   }
 
@@ -330,7 +424,7 @@ export function AiDemo({
                   className={cn(
                     "max-w-[75%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm shadow-sm",
                     isClient
-                      ? "rounded-tr-md bg-gradient-to-br from-[#ffd24a] via-[#f5c842] to-[#ff8a5b] text-[color:var(--color-ink-900)] shadow-[0_8px_22px_-10px_rgba(255,138,91,0.5)]"
+                      ? "rounded-tr-md bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_8px_22px_-10px_rgba(13,148,136,0.5)]"
                       : "rounded-tl-md bg-white text-[color:var(--color-ink-800)] ring-1 ring-[color:var(--color-ink-100)]",
                   )}
                 >
@@ -420,12 +514,12 @@ export function AiDemo({
           </div>
         )}
 
-        <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#f5f3ff] via-[#fff5f1] to-[#fffaeb] p-5 shadow-[var(--shadow-sm)]">
+        <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#f5f3ff] via-[#e6f4f1] to-[#effdf6] p-5 shadow-[var(--shadow-sm)]">
           <span
             aria-hidden
             className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-60 blur-2xl"
             style={{
-              background: "radial-gradient(circle, rgba(255,138,91,0.4) 0%, transparent 60%)",
+              background: "radial-gradient(circle, rgba(13,148,136,0.4) 0%, transparent 60%)",
             }}
           />
           <div className="relative">

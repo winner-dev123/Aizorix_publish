@@ -18,8 +18,8 @@ export function AizorixLogo({
     <span
       className={cn(
         "relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-2xl",
-        "bg-gradient-to-br from-[#ffd24a] via-[#f5c842] to-[#ff8a5b]",
-        "shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_8px_22px_-10px_rgba(255,138,91,0.55)]",
+        "bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488]",
+        "shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_8px_22px_-10px_rgba(13,148,136,0.55)]",
       )}
       aria-hidden
     >
@@ -62,7 +62,7 @@ export function AizorixLogo({
           wordColor,
         )}
       >
-        a<span className="text-[#e6b020]">i</span>zori<span className="text-[#e6b020]">x</span>
+        a<span className="text-[#0d9488]">i</span>zori<span className="text-[#0d9488]">x</span>
       </span>
     </div>
   );

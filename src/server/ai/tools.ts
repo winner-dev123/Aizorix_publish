@@ -179,6 +179,31 @@ const bookAppointmentTool: Tool<z.infer<typeof bookAppointmentInput>> = {
         error: { code: "PATIENT_REQUIRED", message: "No se ha identificado al paciente. Llama antes a find_or_create_patient." },
       };
     }
+
+    // Duplicate-booking guard: the same patient may not hold two ACTIVE
+    // (PENDING/CONFIRMED) appointments for the same treatment in the
+    // future. We surface the existing one so the LLM can propose
+    // rescheduling or cancelling instead of stacking duplicates.
+    const duplicate = await prisma.appointment.findFirst({
+      where: {
+        patientId: ctx.patientId,
+        treatmentId,
+        status: { in: ["PENDING", "CONFIRMED"] },
+        startsAt: { gte: ctx.now },
+      },
+      orderBy: { startsAt: "asc" },
+    });
+    if (duplicate) {
+      const tz = ctx.clinicTimezone;
+      return {
+        ok: false,
+        error: {
+          code: "DUPLICATE_BOOKING",
+          message: `El paciente ya tiene una cita ${duplicate.status} para este tratamiento el ${formatInTimeZone(duplicate.startsAt, tz, "EEEE d MMM 'a las' HH:mm")} (id=${duplicate.id}). Antes de crear otra, propón al paciente reprogramarla con reschedule_appointment o cancelarla con cancel_appointment.`,
+        },
+      };
+    }
+
     try {
       const appointment = await bookAppointment({
         clinicId: ctx.clinicId,
@@ -285,10 +310,21 @@ const rescheduleTool: Tool<z.infer<typeof rescheduleInput>> = {
 
 // ----- find_or_create_patient ------------------------------------------
 
+const E164 = /^\+\d{8,15}$/;
+
 const patientInput = z.object({
   firstName: z.string().min(1),
   lastName: z.string().optional(),
   gender: z.enum(["MALE", "FEMALE", "ANY"]).optional(),
+  // Explicit phone in E.164 form. Required when the channel's externalChatId
+  // isn't itself a phone (e.g. WEB demo channel uses "demo-<userId>"). For
+  // WhatsApp channels the orchestrator falls back to externalChatId when
+  // the LLM doesn't pass one.
+  phone: z
+    .string()
+    .trim()
+    .regex(E164, "Formato esperado: +<código país><número>, ej. +34611000000")
+    .optional(),
 });
 
 const patientTool: Tool<z.infer<typeof patientInput>> = {
@@ -296,27 +332,48 @@ const patientTool: Tool<z.infer<typeof patientInput>> = {
   definition: {
     name: "find_or_create_patient",
     description:
-      "Buscar al paciente actual por su número de WhatsApp (externalChatId). Si no existe, crearlo como LEAD con el nombre proporcionado. Devuelve el patientId que usarán las demás herramientas.",
+      "Buscar al paciente actual por su número de teléfono. Si no existe, crearlo como LEAD con el nombre y teléfono proporcionados. Devuelve el patientId que usarán las demás herramientas. REQUIERE un teléfono en formato E.164 (+34...): si el canal es WhatsApp, ya lo tienes (es el remitente, no hace falta que lo pases); si es WEB u otro, PÍDESELO al paciente antes y pásalo como `phone`.",
     inputSchema: {
       type: "object",
       properties: {
         firstName: { type: "string" },
         lastName: { type: "string" },
         gender: { type: "string", enum: ["MALE", "FEMALE", "ANY"] },
+        phone: {
+          type: "string",
+          description: "Teléfono del paciente en formato E.164, ej. '+34611000000'. Obligatorio cuando el canal no es WhatsApp.",
+        },
       },
       required: ["firstName"],
     },
   },
-  async handler({ firstName, lastName, gender }, ctx) {
+  async handler({ firstName, lastName, gender, phone }, ctx) {
+    // Phone resolution priority:
+    //   1. explicit `phone` arg (E.164-validated by Zod)
+    //   2. externalChatId if it itself matches E.164 (WhatsApp case)
+    //   3. error PHONE_REQUIRED → LLM must ask the user
+    const effectivePhone =
+      phone ?? (E164.test(ctx.externalChatId) ? ctx.externalChatId : null);
+    if (!effectivePhone) {
+      return {
+        ok: false,
+        error: {
+          code: "PHONE_REQUIRED",
+          message:
+            "Necesito el teléfono del paciente en formato E.164 (ej. +34611000000) antes de registrarlo. Pídeselo y vuelve a llamar a find_or_create_patient pasando el campo `phone`.",
+        },
+      };
+    }
+
     const existing = await prisma.patient.findFirst({
-      where: { clinicId: ctx.clinicId, phone: ctx.externalChatId },
+      where: { clinicId: ctx.clinicId, phone: effectivePhone },
     });
     const patient =
       existing ??
       (await prisma.patient.create({
         data: {
           clinicId: ctx.clinicId,
-          phone: ctx.externalChatId,
+          phone: effectivePhone,
           firstName,
           lastName,
           gender,
@@ -333,7 +390,15 @@ const patientTool: Tool<z.infer<typeof patientInput>> = {
         await prisma.patient.update({ where: { id: existing.id }, data: update });
       }
     }
-    return { ok: true, data: { patientId: patient.id, status: patient.status, isNew: !existing } };
+    return {
+      ok: true,
+      data: {
+        patientId: patient.id,
+        phone: patient.phone,
+        status: patient.status,
+        isNew: !existing,
+      },
+    };
   },
 };
 
@@ -413,9 +478,194 @@ const escalateTool: Tool<z.infer<typeof escalateInput>> = {
   },
 };
 
+// ----- list_treatments --------------------------------------------------
+
+const emptyInput = z.object({}).strict();
+
+const listTreatmentsTool: Tool<Record<string, never>> = {
+  input: emptyInput,
+  definition: {
+    name: "list_treatments",
+    description:
+      "Lista TODOS los tratamientos activos de la clínica con nombre, duración, precio y descripción. Llama esta herramienta cuando el paciente pregunte qué ofrecéis, qué tratamientos hay, o pida ver el catálogo. NO inventes precios ni una lista de memoria — siempre consulta primero.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  async handler(_input, ctx) {
+    const treatments = await prisma.treatment.findMany({
+      where: { clinicId: ctx.clinicId, active: true },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        durationMinutes: true,
+        price: true,
+        priceType: true,
+        showPrice: true,
+        requiresValuation: true,
+      },
+      orderBy: { name: "asc" },
+    });
+    return {
+      ok: true,
+      data: {
+        treatments: treatments.map((t) => ({
+          id: t.id,
+          name: t.name,
+          slug: t.slug,
+          description: t.description,
+          durationMinutes: t.durationMinutes,
+          price: t.price ? Number(t.price) : null,
+          priceType: t.priceType,
+          showPrice: t.showPrice,
+          requiresValuation: t.requiresValuation,
+        })),
+      },
+    };
+  },
+};
+
+// ----- list_technicians -------------------------------------------------
+
+const listTechniciansTool: Tool<Record<string, never>> = {
+  input: emptyInput,
+  definition: {
+    name: "list_technicians",
+    description:
+      "Lista TODOS los técnicos/profesionales activos de la clínica junto con los tratamientos que pueden realizar. Útil cuando el paciente pregunta por una persona concreta o por quién atiende un tratamiento.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  async handler(_input, ctx) {
+    const techs = await prisma.technician.findMany({
+      where: { clinicId: ctx.clinicId, active: true },
+      include: {
+        treatments: {
+          where: { isExcluded: false },
+          include: { treatment: { select: { id: true, name: true } } },
+        },
+      },
+      orderBy: { name: "asc" },
+    });
+    return {
+      ok: true,
+      data: {
+        technicians: techs.map((t) => ({
+          id: t.id,
+          name: t.name,
+          treatments: t.treatments.map((tt) => ({
+            id: tt.treatment.id,
+            name: tt.treatment.name,
+            isPrimary: tt.isPrimary,
+            isPreferred: tt.isPreferred,
+            isExclusive: tt.isExclusive,
+          })),
+        })),
+      },
+    };
+  },
+};
+
+// ----- list_business_hours ----------------------------------------------
+
+const DAY_LABEL = [
+  "Domingo",
+  "Lunes",
+  "Martes",
+  "Miércoles",
+  "Jueves",
+  "Viernes",
+  "Sábado",
+];
+
+const listBusinessHoursTool: Tool<Record<string, never>> = {
+  input: emptyInput,
+  definition: {
+    name: "list_business_hours",
+    description:
+      "Devuelve los horarios de apertura de la clínica por día de la semana (zona horaria local). Llama esto si el paciente pregunta '¿cuándo abrís?' o para razonar sobre disponibilidad fuera de los slots devueltos por find_availability.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  async handler(_input, ctx) {
+    const rows = await prisma.clinicBusinessHours.findMany({
+      where: { clinicId: ctx.clinicId },
+      orderBy: [{ dayOfWeek: "asc" }, { opensAt: "asc" }],
+    });
+    const schedule = DAY_LABEL.map((label, i) => ({
+      dayOfWeek: i,
+      day: label,
+      windows: rows
+        .filter((r) => r.dayOfWeek === i)
+        .map((r) => ({ opensAt: r.opensAt, closesAt: r.closesAt })),
+      closed: !rows.some((r) => r.dayOfWeek === i),
+    }));
+    return {
+      ok: true,
+      data: { schedule, timezone: ctx.clinicTimezone },
+    };
+  },
+};
+
+// ----- list_patient_appointments ---------------------------------------
+
+const listPatientAppointmentsTool: Tool<Record<string, never>> = {
+  input: emptyInput,
+  definition: {
+    name: "list_patient_appointments",
+    description:
+      "Lista las citas del paciente actual: las próximas 8 semanas y las últimas 4 semanas. Llama esta herramienta SIEMPRE antes de proponer un nuevo hueco — si el paciente ya tiene una cita pendiente o confirmada para el mismo tratamiento, NO crees otra; propón reprogramarla o cancelarla en su lugar.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  async handler(_input, ctx) {
+    if (!ctx.patientId) {
+      return {
+        ok: false,
+        error: {
+          code: "PATIENT_REQUIRED",
+          message:
+            "Identifica primero al paciente con find_or_create_patient.",
+        },
+      };
+    }
+    const past = new Date(ctx.now.getTime() - 28 * 24 * 60 * 60 * 1000);
+    const future = new Date(ctx.now.getTime() + 56 * 24 * 60 * 60 * 1000);
+    const appts = await prisma.appointment.findMany({
+      where: {
+        patientId: ctx.patientId,
+        startsAt: { gte: past, lte: future },
+      },
+      include: {
+        treatment: { select: { id: true, name: true } },
+        technician: { select: { id: true, name: true } },
+      },
+      orderBy: { startsAt: "asc" },
+    });
+    const tz = ctx.clinicTimezone;
+    return {
+      ok: true,
+      data: {
+        appointments: appts.map((a) => ({
+          id: a.id,
+          treatmentId: a.treatment.id,
+          treatmentName: a.treatment.name,
+          technicianId: a.technician.id,
+          technicianName: a.technician.name,
+          status: a.status,
+          startsAtLocal: formatInTimeZone(a.startsAt, tz, "yyyy-MM-dd'T'HH:mm:ss"),
+          humanLocal: formatInTimeZone(a.startsAt, tz, "EEEE d MMM, HH:mm"),
+          isPast: a.startsAt < ctx.now,
+        })),
+      },
+    };
+  },
+};
+
 // ----- registry --------------------------------------------------------
 
 export const TOOLS = {
+  list_treatments: listTreatmentsTool,
+  list_technicians: listTechniciansTool,
+  list_business_hours: listBusinessHoursTool,
+  list_patient_appointments: listPatientAppointmentsTool,
   find_treatment: findTreatment,
   find_availability: findAvailabilityTool,
   book_appointment: bookAppointmentTool,

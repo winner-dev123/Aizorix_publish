@@ -137,7 +137,7 @@ export function StepLocations() {
                     className={cn(
                       "flex h-9 w-9 items-center justify-center rounded-full border text-xs font-semibold transition-colors",
                       active
-                        ? "border-transparent bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] text-[color:var(--color-ink-900)] shadow-[0_4px_10px_-4px_rgba(255,138,91,0.4)]"
+                        ? "border-transparent bg-gradient-to-br from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_4px_10px_-4px_rgba(13,148,136,0.4)]"
                         : "border-[color:var(--color-ink-200)] bg-white text-[color:var(--color-ink-500)] hover:border-[color:var(--color-ink-400)]",
                     )}
                   >

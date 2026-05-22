@@ -120,6 +120,12 @@ model Clinic {
   // a free-text "INSTRUCCIONES ADICIONALES" block.
   aiTone     AiTone   @default(NEUTRAL)
   aiGuidance String?
+  // Optional full override of the system prompt template. NULL means "use the
+  // baked-in default in src/server/ai/prompt.ts". When set, the orchestrator
+  // renders this string with {{placeholders}} (clinic_name, timezone, now,
+  // tone_instructions, guidance, patient_context, memories, patient_notes,
+  // date_rules, technician_rules, output_format) and uses it verbatim.
+  aiSystemPrompt String?
   // Module feature toggles (Phase 6.9). Stored as an array of stable
   // string keys defined in src/server/actions/module-catalogue.ts.
   // Defaults to all modules enabled.
@@ -144,6 +150,7 @@ model Clinic {
   handoffs            HumanHandoff[]
   whatsapp            WhatsAppIntegration?
   aiMemories          AiMemory[]
+  auditLogs           AuditLog[]
 }
 
 model User {
@@ -163,6 +170,7 @@ model User {
   handoffs HumanHandoff[]
   accounts Account[]
   sessions Session[]
+  auditLogs AuditLog[]
 
   @@unique([clinicId, email])
   @@index([clinicId])
@@ -461,6 +469,29 @@ model WhatsAppIntegration {
   updatedAt     DateTime         @updatedAt
 
   clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+}
+
+/**
+ * Append-only log of staff actions (settings changes, staff invites, manual
+ * replies, handoff resolution, etc.). Written by logAudit() in
+ * src/server/audit.ts and surfaced read-only on /app/settings/audit. The
+ * actor relation is nullable so we keep history even after a user row is
+ * deleted (FK set null on cascade).
+ */
+model AuditLog {
+  id          String   @id @default(cuid())
+  clinicId    String
+  actorUserId String?
+  action      String   // e.g. "clinic.updated", "staff.invited", "memory.upserted"
+  target      String?  // e.g. "patient:<id>", "memory:<patientId>:<key>"
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  actor  User?  @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([clinicId, createdAt])
+  @@index([clinicId, action, createdAt])
 }
 
 // ============================================================

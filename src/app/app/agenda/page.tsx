@@ -119,7 +119,7 @@ export default async function AgendaPage() {
                       {slots.map((a) => (
                         <div
                           key={a.id}
-                          className="rounded-lg bg-gradient-to-br from-[#ffd24a] via-[#f5c842] to-[#ff8a5b] px-2 py-1.5 text-[10px] font-semibold text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(255,138,91,0.45)]"
+                          className="rounded-lg bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] px-2 py-1.5 text-[10px] font-semibold text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(13,148,136,0.45)]"
                         >
                           <p className="truncate font-bold">{patientName(a)}</p>
                           <p className="truncate text-[9px] opacity-80">
@@ -155,7 +155,7 @@ export default async function AgendaPage() {
               className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-4 transition hover:-translate-y-0.5 hover:shadow-md"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(255,138,91,0.45)]">
+                <div className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(13,148,136,0.45)]">
                   <span className="text-[9px] font-bold uppercase tracking-wider opacity-80">
                     {formatInTimeZone(a.startsAt, tz, "MMM")}
                   </span>

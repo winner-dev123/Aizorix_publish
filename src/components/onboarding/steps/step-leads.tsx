@@ -15,8 +15,8 @@ const FLOW = [
     icon: Sparkles,
     title: "2. La IA clasifica",
     text: "Detecta intención, tratamiento de interés y nivel de urgencia.",
-    icon_bg: "from-[#ffd24a] to-[#ff8a5b]",
-    card_bg: "from-[#fffaeb] to-white",
+    icon_bg: "from-[#25d366] to-[#0d9488]",
+    card_bg: "from-[#effdf6] to-white",
   },
   {
     icon: UserPlus,
@@ -59,7 +59,7 @@ export function StepLeads() {
         ))}
       </div>
 
-      <div className="rounded-2xl border border-white/70 bg-gradient-to-br from-[#fff5f1] to-[#fffaeb] p-5 text-sm text-[color:var(--color-ink-700)] shadow-[var(--shadow-xs)]">
+      <div className="rounded-2xl border border-white/70 bg-gradient-to-br from-[#e6f4f1] to-[#effdf6] p-5 text-sm text-[color:var(--color-ink-700)] shadow-[var(--shadow-xs)]">
         Este flujo se activa automáticamente al terminar el onboarding. Puedes ajustar
         las reglas (auto-respuesta, asignación, follow-ups) desde la sección{" "}
         <strong>Automatizaciones</strong> del CRM.

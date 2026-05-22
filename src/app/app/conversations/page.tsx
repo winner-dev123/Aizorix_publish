@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Bot, CheckCircle2, Phone, ShieldAlert, Sparkles, UserRound } from "lucide-react";
+import { Bot, CheckCircle2, Phone, Search, ShieldAlert, Sparkles, UserRound } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
@@ -11,12 +11,17 @@ import {
 } from "@/server/dashboard/queries";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { HandoffActions } from "@/components/dashboard/handoff-actions";
 import { cn } from "@/lib/utils";
 
 export const revalidate = 30;
 
-type SearchParams = Promise<{ id?: string; filter?: "all" | "needs-human" }>;
+type SearchParams = Promise<{
+  id?: string;
+  filter?: "all" | "needs-human";
+  q?: string;
+}>;
 
 export default async function ConversationsPage({
   searchParams,
@@ -31,12 +36,12 @@ export default async function ConversationsPage({
   if (!clinic) redirect("/signin");
   const tz = clinic.timezone;
 
-  const { id: activeId, filter } = await searchParams;
+  const { id: activeId, filter, q } = await searchParams;
   const effectiveFilter = filter ?? "all";
   const conversations =
     effectiveFilter === "needs-human"
-      ? await getNeedsAttentionConversations(clinicId)
-      : await getRecentConversations(clinicId);
+      ? await getNeedsAttentionConversations(clinicId, q)
+      : await getRecentConversations(clinicId, q);
 
   const active = activeId
     ? await getConversationTranscript(clinicId, activeId)
@@ -51,13 +56,35 @@ export default async function ConversationsPage({
     return c.externalChatId ?? "Desconocido";
   }
 
+  // Preserve `?q=` across filter-chip clicks so toggling Todas/Necesitan
+  // ayuda doesn't drop the user's search.
+  const allHref = q ? `?filter=all&q=${encodeURIComponent(q)}` : "?filter=all";
+  const needsHref = q
+    ? `?filter=needs-human&q=${encodeURIComponent(q)}`
+    : "?filter=needs-human";
+
   return (
     <div className="grid h-[calc(100vh-10rem)] gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
       <aside className="flex flex-col overflow-hidden rounded-3xl border border-[color:var(--color-ink-100)] bg-white shadow-[var(--shadow-sm)]">
-        <div className="border-b border-[color:var(--color-ink-100)] p-3">
+        <div className="border-b border-[color:var(--color-ink-100)] p-3 space-y-2">
+          {/* Search: server-rendered GET form. Submits to the same route
+              with ?q=<value> so the URL is shareable. Persists `filter`
+              via the hidden input so the active filter chip stays
+              selected after submitting. */}
+          <form method="get" className="relative">
+            <input type="hidden" name="filter" value={effectiveFilter} />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--color-ink-400)]" />
+            <Input
+              name="q"
+              defaultValue={q ?? ""}
+              placeholder="Buscar por nombre o teléfono…"
+              className="h-9 pl-8 text-xs"
+              aria-label="Buscar conversaciones"
+            />
+          </form>
           <div className="flex gap-1.5">
             <Link
-              href="?filter=all"
+              href={allHref}
               className={cn(
                 "shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition",
                 effectiveFilter === "all"
@@ -68,7 +95,7 @@ export default async function ConversationsPage({
               Todas
             </Link>
             <Link
-              href="?filter=needs-human"
+              href={needsHref}
               className={cn(
                 "shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition",
                 effectiveFilter === "needs-human"
@@ -78,6 +105,15 @@ export default async function ConversationsPage({
             >
               Necesitan ayuda
             </Link>
+            {q && (
+              <Link
+                href={`?filter=${effectiveFilter}`}
+                className="ml-auto shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold text-[color:var(--color-ink-500)] hover:text-[color:var(--color-ink-900)] hover:underline"
+                title="Limpiar búsqueda"
+              >
+                Limpiar
+              </Link>
+            )}
           </div>
         </div>
 
@@ -85,8 +121,12 @@ export default async function ConversationsPage({
           {conversations.length === 0 && (
             <li className="p-6 text-center text-xs text-[color:var(--color-ink-500)]">
               {effectiveFilter === "needs-human"
-                ? "No hay conversaciones pendientes de revisión."
-                : "No hay conversaciones todavía."}
+                ? q
+                  ? `Sin resultados pendientes para "${q}".`
+                  : "No hay conversaciones pendientes de revisión."
+                : q
+                  ? `Sin resultados para "${q}".`
+                  : "No hay conversaciones todavía."}
             </li>
           )}
           {conversations.map((c) => {
@@ -112,7 +152,7 @@ export default async function ConversationsPage({
                   {isActive && (
                     <span className="absolute left-0 top-1/2 h-9 w-1 -translate-y-1/2 rounded-r-full bg-[color:var(--color-brand-400)]" />
                   )}
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] text-xs font-black text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(255,138,91,0.4)]">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] text-xs font-black text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(13,148,136,0.4)]">
                     {initials || "?"}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -223,7 +263,7 @@ function Thread({ conv, tz }: { conv: ConversationWithDetails; tz: string }) {
                   "group max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-sm",
                   isPatient
                     ? "rounded-tl-md bg-white text-[color:var(--color-ink-800)] ring-1 ring-[color:var(--color-ink-100)]"
-                    : "rounded-tr-md bg-gradient-to-br from-[#ffd24a] via-[#f5c842] to-[#ff8a5b] text-[color:var(--color-ink-900)] shadow-[0_8px_22px_-10px_rgba(255,138,91,0.5)]",
+                    : "rounded-tr-md bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_8px_22px_-10px_rgba(13,148,136,0.5)]",
                 )}
               >
                 <p className="whitespace-pre-wrap">{m.content}</p>

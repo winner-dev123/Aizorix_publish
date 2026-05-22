@@ -21,6 +21,7 @@ import {
   updateAiConfigAction,
   updateBusinessHoursAction,
   updateClinicAction,
+  updatePromptTemplateAction,
 } from "../clinic";
 import { auth } from "@/auth";
 
@@ -233,6 +234,54 @@ describeMaybe("settings server actions (DB)", () => {
       const after = await prisma.clinic.findUniqueOrThrow({ where: { id: clinicId } });
       expect(after.aiTone).toBe("CASUAL");
       expect(after.aiGuidance).toBe("Pide DNI siempre.");
+    });
+  });
+
+  // ---------- updatePromptTemplateAction ----------
+
+  describe("updatePromptTemplateAction", () => {
+    it("returns FORBIDDEN for STAFF/RECEPTIONIST roles", async () => {
+      mockSession(clinicId, "STAFF");
+      const res = await updatePromptTemplateAction({ template: "x" });
+      expect(res.ok === false && res.error.code).toBe("FORBIDDEN");
+    });
+
+    it("rejects templates over 16k chars", async () => {
+      mockSession(clinicId, "OWNER");
+      const res = await updatePromptTemplateAction({ template: "x".repeat(16_001) });
+      expect(res.ok === false && res.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    it("stores a non-empty template verbatim (trimmed)", async () => {
+      mockSession(clinicId, "OWNER");
+      const res = await updatePromptTemplateAction({
+        template: "  Custom prompt for {{clinic_name}}.  ",
+      });
+      expect(res.ok).toBe(true);
+      const after = await prisma.clinic.findUniqueOrThrow({ where: { id: clinicId } });
+      expect(after.aiSystemPrompt).toBe("Custom prompt for {{clinic_name}}.");
+    });
+
+    it("treats an empty/whitespace template as 'reset to default' (stores null)", async () => {
+      mockSession(clinicId, "OWNER");
+      // First set a non-default value so we can prove the reset wipes it.
+      await updatePromptTemplateAction({ template: "Custom prompt" });
+      const mid = await prisma.clinic.findUniqueOrThrow({ where: { id: clinicId } });
+      expect(mid.aiSystemPrompt).toBe("Custom prompt");
+
+      const res = await updatePromptTemplateAction({ template: "   " });
+      expect(res.ok).toBe(true);
+      const after = await prisma.clinic.findUniqueOrThrow({ where: { id: clinicId } });
+      expect(after.aiSystemPrompt).toBeNull();
+    });
+
+    it("accepts an explicit null payload (reset)", async () => {
+      mockSession(clinicId, "OWNER");
+      await updatePromptTemplateAction({ template: "Custom prompt" });
+      const res = await updatePromptTemplateAction({ template: null });
+      expect(res.ok).toBe(true);
+      const after = await prisma.clinic.findUniqueOrThrow({ where: { id: clinicId } });
+      expect(after.aiSystemPrompt).toBeNull();
     });
   });
 

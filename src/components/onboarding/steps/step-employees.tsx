@@ -34,7 +34,7 @@ export function StepEmployees() {
               className="flex items-center justify-between rounded-xl border border-[color:var(--color-ink-100)] bg-[color:var(--color-ink-50)] p-4"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#ffd24a] to-[#ff8a5b] text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(255,138,91,0.4)]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(13,148,136,0.4)]">
                   <UserRound className="h-4 w-4" />
                 </div>
                 <div>

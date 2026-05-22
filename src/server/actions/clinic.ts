@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/server/db";
+import { logAudit } from "@/server/audit";
 import {
   CLINIC_AI_TONE_OPTIONS,
   CLINIC_LOCALE_OPTIONS,
@@ -76,6 +77,18 @@ export async function updateClinicAction(input: UpdateClinicInput): Promise<Acti
   await prisma.clinic.update({
     where: { id: session.user.clinicId },
     data: parsed.data,
+  });
+
+  await logAudit({
+    clinicId: session.user.clinicId,
+    actorUserId: session.user.id,
+    action: "clinic.updated",
+    target: `clinic:${session.user.clinicId}`,
+    metadata: {
+      name: parsed.data.name,
+      whatsappNumber: parsed.data.whatsappNumber,
+      timezone: parsed.data.timezone,
+    },
   });
 
   revalidatePath("/app/settings");
@@ -159,6 +172,14 @@ export async function updateBusinessHoursAction(rows: BusinessHoursInput): Promi
       : []),
   ]);
 
+  await logAudit({
+    clinicId,
+    actorUserId: session.user.id,
+    action: "business_hours.updated",
+    target: `clinic:${clinicId}`,
+    metadata: { rows: parsed.data.length },
+  });
+
   revalidatePath("/app/settings");
   revalidatePath("/app/settings/hours");
   return { ok: true };
@@ -201,6 +222,78 @@ export async function updateAiConfigAction(input: AiConfigInput): Promise<Action
   await prisma.clinic.update({
     where: { id: session.user.clinicId },
     data: parsed.data,
+  });
+
+  await logAudit({
+    clinicId: session.user.clinicId,
+    actorUserId: session.user.id,
+    action: "ai_config.updated",
+    target: `clinic:${session.user.clinicId}`,
+    metadata: { aiTone: parsed.data.aiTone, guidanceLength: parsed.data.aiGuidance?.length ?? 0 },
+  });
+
+  revalidatePath("/app/settings");
+  revalidatePath("/app/settings/ai");
+  return { ok: true };
+}
+
+const MAX_PROMPT_CHARS = 16_000;
+
+const promptTemplateSchema = z.object({
+  template: z
+    .string()
+    .max(MAX_PROMPT_CHARS, `Máximo ${MAX_PROMPT_CHARS} caracteres`)
+    .transform((v) => v.trim())
+    // Empty string → null = "use baked-in default"
+    .transform((v) => (v === "" ? null : v))
+    .nullable(),
+});
+
+export type UpdatePromptTemplateInput = z.input<typeof promptTemplateSchema>;
+
+/**
+ * Overwrite (or clear) the clinic's custom system-prompt template. Passing
+ * `template: null` (or an empty/whitespace string) resets to the baked-in
+ * default in src/server/ai/prompt.ts. Any non-empty string is stored
+ * verbatim and rendered with renderPromptTemplate() on every orchestrate
+ * call. The orchestrator already handles missing placeholders by leaving
+ * them untouched — the editor's preview shows the same.
+ *
+ * OWNER + ADMIN only. Audit-logged so a regression in bot behavior after a
+ * prompt change is traceable.
+ */
+export async function updatePromptTemplateAction(
+  input: UpdatePromptTemplateInput,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: { code: "UNAUTHORIZED", message: "No session" } };
+  if (session.user.role !== "OWNER" && session.user.role !== "ADMIN") {
+    return { ok: false, error: { code: "FORBIDDEN", message: "No tienes permisos" } };
+  }
+
+  const parsed = promptTemplateSchema.safeParse(input);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    return {
+      ok: false,
+      error: { code: "VALIDATION_ERROR", message: first?.message ?? "Plantilla inválida" },
+    };
+  }
+
+  await prisma.clinic.update({
+    where: { id: session.user.clinicId },
+    data: { aiSystemPrompt: parsed.data.template },
+  });
+
+  await logAudit({
+    clinicId: session.user.clinicId,
+    actorUserId: session.user.id,
+    action: parsed.data.template ? "ai_prompt.updated" : "ai_prompt.reset",
+    target: `clinic:${session.user.clinicId}`,
+    metadata: {
+      promptLength: parsed.data.template?.length ?? 0,
+      reset: parsed.data.template === null,
+    },
   });
 
   revalidatePath("/app/settings");
@@ -247,6 +340,14 @@ export async function updateActiveModulesAction(
   await prisma.clinic.update({
     where: { id: session.user.clinicId },
     data: { activeModules: parsed.data },
+  });
+
+  await logAudit({
+    clinicId: session.user.clinicId,
+    actorUserId: session.user.id,
+    action: "modules.updated",
+    target: `clinic:${session.user.clinicId}`,
+    metadata: { activeModules: parsed.data },
   });
 
   revalidatePath("/app/settings");

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Mail, Plus, RotateCcw, ShieldOff } from "lucide-react";
+import { Mail, Plus, RotateCcw, Send, ShieldOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   inviteStaffAction,
+  resendStaffInviteAction,
   setStaffActiveAction,
   setStaffRoleAction,
   type InviteStaffInput,
@@ -90,6 +91,19 @@ export function StaffList({
     startTransition(async () => {
       const res = await setStaffRoleAction({ userId: row.id, role });
       if (!res.ok) setError(res.error.message);
+    });
+  }
+
+  function doResendInvite(row: StaffRow) {
+    setError(null);
+    setInfo(null);
+    startTransition(async () => {
+      const res = await resendStaffInviteAction(row.id);
+      if (res.ok) {
+        setInfo(`Enlace de acceso reenviado a ${row.email}.`);
+      } else {
+        setError(res.error.message);
+      }
     });
   }
 
@@ -203,6 +217,19 @@ export function StaffList({
                       </option>
                     ))}
                   </select>
+
+                  {row.active && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => doResendInvite(row)}
+                      disabled={pending}
+                      title="Reenviar el enlace de acceso por email"
+                    >
+                      <Send className="h-4 w-4" /> Reenviar enlace
+                    </Button>
+                  )}
 
                   {row.active ? (
                     <Button

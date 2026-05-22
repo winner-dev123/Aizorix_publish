@@ -20,6 +20,7 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 import { prisma } from "../../db";
 import {
   inviteStaffAction,
+  resendStaffInviteAction,
   setStaffActiveAction,
   setStaffRoleAction,
 } from "../staff";
@@ -257,6 +258,48 @@ describeMaybe("staff server actions (DB)", () => {
 
       const after = await prisma.user.findUniqueOrThrow({ where: { id: staffUserId } });
       expect(after.role).toBe("ADMIN");
+    });
+  });
+
+  // ---------- resendStaffInviteAction ----------
+
+  describe("resendStaffInviteAction", () => {
+    it("returns UNAUTHORIZED when no session", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(auth).mockResolvedValue(null as any);
+      const res = await resendStaffInviteAction(ownerUserId);
+      expect(res.ok === false && res.error.code).toBe("UNAUTHORIZED");
+    });
+
+    it("returns FORBIDDEN for STAFF role", async () => {
+      mockSession(clinicId, ownerUserId, "STAFF");
+      const res = await resendStaffInviteAction(ownerUserId);
+      expect(res.ok === false && res.error.code).toBe("FORBIDDEN");
+    });
+
+    it("returns NOT_FOUND for a missing / cross-tenant user", async () => {
+      mockSession(clinicId, ownerUserId, "OWNER");
+      const res = await resendStaffInviteAction("ghost-id");
+      expect(res.ok === false && res.error.code).toBe("NOT_FOUND");
+    });
+
+    it("returns INACTIVE_USER when the user is deactivated", async () => {
+      mockSession(clinicId, ownerUserId, "OWNER");
+      await prisma.user.update({ where: { id: staffUserId }, data: { active: false } });
+      const res = await resendStaffInviteAction(staffUserId);
+      expect(res.ok === false && res.error.code).toBe("INACTIVE_USER");
+      // Cleanup for the next tests.
+      await prisma.user.update({ where: { id: staffUserId }, data: { active: true } });
+    });
+
+    it("happy path: calls signIn with the user's email", async () => {
+      mockSession(clinicId, ownerUserId, "OWNER");
+      const res = await resendStaffInviteAction(staffUserId);
+      expect(res.ok).toBe(true);
+      expect(signIn).toHaveBeenCalledWith("nodemailer", {
+        email: staffEmail,
+        redirect: false,
+      });
     });
   });
 });

@@ -4,7 +4,11 @@ import path from "node:path";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["src/server/**/*.test.ts", "src/app/**/*.test.ts"],
+    include: [
+      "src/server/**/*.test.ts",
+      "src/app/**/*.test.ts",
+      "src/lib/**/*.test.ts",
+    ],
     globals: false,
     setupFiles: ["dotenv/config"],
     // Integration tests share a real Postgres under Serializable isolation;

@@ -28,10 +28,10 @@ export function Checkbox({
       disabled={disabled}
       onClick={() => onCheckedChange?.(!checked)}
       className={cn(
-        "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all duration-200",
+        "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[color:var(--color-brand-200)]/55",
         checked
-          ? "border-[color:var(--color-ink-900)] bg-[color:var(--color-ink-900)] text-[color:var(--color-brand-400)] shadow-[0_4px_10px_-4px_rgba(6,10,28,0.4)]"
-          : "border-[color:var(--color-ink-200)] bg-white hover:border-[color:var(--color-ink-400)] hover:bg-[color:var(--color-ink-50)]",
+          ? "border-[#7c3aed] bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] text-white shadow-[0_4px_14px_-4px_rgba(124,58,237,0.55)]"
+          : "border-[color:var(--color-ink-200)] bg-white hover:border-[color:var(--color-brand-400)] hover:bg-[color:var(--color-brand-50)]",
         disabled && "cursor-not-allowed opacity-50",
         className,
       )}
