@@ -15,10 +15,10 @@ type Stage = "NUEVO" | "CONTACTADO" | "CITA" | "CLIENTE" | "INACTIVO";
 
 const STAGES: { id: Stage; name: string; color: string }[] = [
   { id: "NUEVO", name: "Nuevo", color: "from-[#8ec0ff] to-[#2f88ff]" },
-  { id: "CONTACTADO", name: "Contactado", color: "from-[#bcb1ff] to-[#7c6cf5]" },
-  { id: "CITA", name: "Cita agendada", color: "from-[#25d366] to-[#14b87a]" },
-  { id: "CLIENTE", name: "Cliente activo", color: "from-[#7eddb4] to-[#20bf7c]" },
-  { id: "INACTIVO", name: "Inactivo", color: "from-[#4cd49a] to-[#ff6a33]" },
+  { id: "CONTACTADO", name: "Contactado", color: "from-[#c4b5fd] to-[#7c3aed]" },
+  { id: "CITA", name: "Cita agendada", color: "from-[#a855f7] to-[#8b5cf6]" },
+  { id: "CLIENTE", name: "Cliente activo", color: "from-[#c4b5fd] to-[#8b5cf6]" },
+  { id: "INACTIVO", name: "Inactivo", color: "from-[#a78bfa] to-[#ff6a33]" },
 ];
 
 type Patient = Awaited<ReturnType<typeof getPipelinePatients>>[number];
@@ -98,7 +98,7 @@ export default async function PipelinePage() {
                       className="block rounded-2xl border border-[color:var(--color-ink-100)] bg-white p-3.5 shadow-[var(--shadow-xs)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--color-ink-200)] hover:shadow-md"
                     >
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] text-[10px] font-black text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(13,148,136,0.45)]">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] text-[10px] font-black text-white shadow-[0_6px_14px_-6px_rgba(13,148,136,0.45)]">
                           {initials.toUpperCase() || "?"}
                         </div>
                         <div className="min-w-0">

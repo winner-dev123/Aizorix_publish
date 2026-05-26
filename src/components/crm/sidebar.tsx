@@ -21,34 +21,48 @@ import {
 } from "lucide-react";
 import { AizorixLogo } from "@/components/brand/aizorix-logo";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/locale-context";
+import type { Dictionary } from "@/i18n/dictionaries";
 
 import type { ModuleKey } from "@/server/actions/module-catalogue";
 
+type NavGroup = "Workspace" | "Comunicación" | "Crecimiento" | "Sistema";
+type NavLabelKey = keyof Dictionary["nav"];
+
 interface NavItem {
   href: string;
-  label: string;
+  /** Key into the `nav` dictionary; resolved to the active language at render. */
+  labelKey: NavLabelKey;
   icon: LucideIcon;
-  group: "Workspace" | "Comunicación" | "Crecimiento" | "Sistema";
+  group: NavGroup;
   badge?: string;
   // When present, this nav entry is hidden if the clinic has the matching
   // module key disabled. Entries without `moduleKey` are core (always shown).
   moduleKey?: ModuleKey;
 }
 
+// Maps the stable group key to its dictionary entry for the header label.
+const GROUP_LABEL_KEY: Record<NavGroup, NavLabelKey> = {
+  Workspace: "workspace",
+  Comunicación: "comunicacion",
+  Crecimiento: "crecimiento",
+  Sistema: "sistema",
+};
+
 function buildNav(needsAttentionCount: number): NavItem[] {
   return [
-    { href: "/app", label: "Dashboard", icon: LayoutDashboard, group: "Workspace" },
+    { href: "/app", labelKey: "dashboard", icon: LayoutDashboard, group: "Workspace" },
     {
       href: "/app/pipeline",
-      label: "Pipeline",
+      labelKey: "pipeline",
       icon: KanbanSquare,
       group: "Workspace",
       moduleKey: "pipeline",
     },
-    { href: "/app/clients", label: "Clientes", icon: Users, group: "Workspace" },
+    { href: "/app/clients", labelKey: "clientes", icon: Users, group: "Workspace" },
     {
       href: "/app/conversations",
-      label: "Conversaciones",
+      labelKey: "conversaciones",
       icon: MessagesSquare,
       group: "Comunicación",
       // Only show the badge when there's something needing attention. The
@@ -58,33 +72,33 @@ function buildNav(needsAttentionCount: number): NavItem[] {
     },
     {
       href: "/app/agenda",
-      label: "Agenda",
+      labelKey: "agenda",
       icon: Calendar,
       group: "Comunicación",
       moduleKey: "agenda",
     },
     {
       href: "/app/ai",
-      label: "IA Recepcionista",
+      labelKey: "iaReceptionist",
       icon: Bot,
       group: "Comunicación",
       moduleKey: "ai-demo",
     },
     {
       href: "/app/campaigns",
-      label: "Campañas IA",
+      labelKey: "campanas",
       icon: Megaphone,
       group: "Crecimiento",
       moduleKey: "campaigns",
     },
     {
       href: "/app/metrics",
-      label: "Métricas",
+      labelKey: "metricas",
       icon: BarChart3,
       group: "Crecimiento",
       moduleKey: "metrics",
     },
-    { href: "/app/settings", label: "Configuración", icon: Settings, group: "Sistema" },
+    { href: "/app/settings", labelKey: "configuracion", icon: Settings, group: "Sistema" },
   ];
 }
 
@@ -115,6 +129,7 @@ export function CrmSidebar({
    */
   activeModules?: readonly ModuleKey[];
 }) {
+  const { t } = useT();
   const pathname = usePathname();
   const activeSet = activeModules ? new Set(activeModules) : null;
   const nav = buildNav(needsAttentionCount).filter(
@@ -214,7 +229,7 @@ export function CrmSidebar({
           return (
             <div key={group} className="mt-5 first:mt-2">
               <p className="px-2.5 pb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">
-                {group}
+                {t.nav[GROUP_LABEL_KEY[group]]}
               </p>
               <ul className="space-y-0.5">
                 {items.map((item) => {
@@ -251,7 +266,7 @@ export function CrmSidebar({
                               : "text-white/55 group-hover:text-white group-hover:scale-110",
                           )}
                         />
-                        <span className="relative flex-1 truncate">{item.label}</span>
+                        <span className="relative flex-1 truncate">{t.nav[item.labelKey]}</span>
                         {item.badge && (
                           <span
                             className={cn(

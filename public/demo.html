@@ -12,13 +12,15 @@
     />
     <style>
       :root {
-        --wa-header: #008069;
-        --wa-header-dark: #005c4b;
-        --wa-out: #d9fdd3;
-        --wa-bg: #efeae2;
-        --wa-accent: #25d366;
-        --panel-accent: #0d9488;
-        --panel-accent-dark: #0f766e;
+        /* Purple theme (was WhatsApp green). Recolors header, avatar,
+           send button and the outgoing message bubble in one place. */
+        --wa-header: #6d28d9;
+        --wa-header-dark: #5b21b6;
+        --wa-out: #ede9fe;
+        --wa-bg: #f3f0fb;
+        --wa-accent: #8b5cf6;
+        --panel-accent: #7c3aed;
+        --panel-accent-dark: #6d28d9;
         --bg: linear-gradient(135deg, #e8f5f3 0%, #e8ecef 50%, #f0f4f8 100%);
         --card: #ffffff;
         --border: #e2e8f0;
@@ -131,7 +133,7 @@
       }
 
       .quick-actions button:hover {
-        background: #ecfdf5;
+        background: #f5f3ff;
         border-color: var(--panel-accent);
         color: var(--panel-accent-dark);
         transform: translateY(-1px);
@@ -174,7 +176,7 @@
       #phone:focus {
         outline: none;
         border-color: var(--panel-accent);
-        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
       }
 
       #message {
@@ -195,7 +197,7 @@
       #message:focus {
         outline: none;
         border-color: var(--panel-accent);
-        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
       }
 
       .actions {
@@ -373,7 +375,7 @@
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
-        background: #cbd5e1;
+        background: linear-gradient(135deg, #a78bfa, #6d28d9);
         border: 2px solid rgba(255, 255, 255, 0.35);
       }
 
@@ -395,7 +397,7 @@
       }
 
       .wa-header .status.online {
-        color: #a7f3d0;
+        color: #ddd6fe;
       }
 
       .wa-header .header-meta {
@@ -518,7 +520,7 @@
       .phone-sheet input:focus {
         outline: none;
         border-color: var(--wa-header);
-        box-shadow: 0 0 0 3px rgba(0, 128, 105, 0.15);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
       }
 
       .sheet-actions {
@@ -603,7 +605,7 @@
 
       .mode-option.active {
         border-color: var(--wa-header);
-        background: #ecfdf5;
+        background: #f5f3ff;
         color: var(--wa-header-dark);
       }
 
@@ -696,7 +698,7 @@
       }
 
       .checks {
-        color: #53bdeb;
+        color: #7c3aed;
         line-height: 0;
       }
 
@@ -925,7 +927,7 @@
             <header class="wa-header">
               <img
                 class="avatar"
-                src="avatar-clinic.png"
+                src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2080%2080'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%23a78bfa'/%3E%3Cstop%20offset='1'%20stop-color='%236d28d9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='80'%20height='80'%20rx='18'%20fill='url(%23g)'/%3E%3Cpath%20d='M40%2018%20L45%2035%20L62%2040%20L45%2045%20L40%2062%20L35%2045%20L18%2040%20L35%2035%20Z'%20fill='%23fff'/%3E%3C/svg%3E"
                 alt="Clínica Estética"
                 width="40"
                 height="40"

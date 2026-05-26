@@ -36,30 +36,37 @@
   --color-surface-2: #f6f8fc;
   --color-surface-3: #eef3fa;
 
-  /* Vibrant pastels for tinting */
-  --color-coral-50: #fff5f1;
-  --color-coral-100: #ffe4d8;
-  --color-coral-200: #ffc7ad;
-  --color-coral-400: #ff8a5b;
-  --color-coral-500: #ff6a33;
+  /* Vibrant accent families — retuned to a bright, modern violet/indigo/
+     fuchsia/cyan system (token names kept for backwards-compat; the old
+     "coral"=orange and "mint"=green are now fuchsia and indigo). */
 
-  --color-mint-50: #effdf6;
-  --color-mint-100: #d4faea;
-  --color-mint-200: #a7f0d1;
-  --color-mint-400: #4cd49a;
-  --color-mint-500: #20bf7c;
+  /* coral → fuchsia/magenta (bright pop) */
+  --color-coral-50: #fdf4ff;
+  --color-coral-100: #fae8ff;
+  --color-coral-200: #f5d0fe;
+  --color-coral-400: #e879f9;
+  --color-coral-500: #d946ef;
 
-  --color-sky-50: #eff7ff;
-  --color-sky-100: #d9ecff;
-  --color-sky-200: #b3d6ff;
-  --color-sky-400: #5aa6ff;
-  --color-sky-500: #2f88ff;
+  /* mint → indigo (bright blue-violet) */
+  --color-mint-50: #eef2ff;
+  --color-mint-100: #e0e7ff;
+  --color-mint-200: #c7d2fe;
+  --color-mint-400: #818cf8;
+  --color-mint-500: #6366f1;
 
+  /* sky → kept, but brighter/cleaner blue */
+  --color-sky-50: #eff6ff;
+  --color-sky-100: #dbeafe;
+  --color-sky-200: #bfdbfe;
+  --color-sky-400: #60a5fa;
+  --color-sky-500: #3b82f6;
+
+  /* lavender → violet (aligned to the brand family) */
   --color-lavender-50: #f5f3ff;
-  --color-lavender-100: #ece8ff;
-  --color-lavender-200: #d6cdff;
-  --color-lavender-400: #9b8cff;
-  --color-lavender-500: #7c6cf5;
+  --color-lavender-100: #ede9fe;
+  --color-lavender-200: #ddd6fe;
+  --color-lavender-400: #a78bfa;
+  --color-lavender-500: #8b5cf6;
 
   --color-rose-50: #fef4f8;
   --color-rose-100: #fde2ec;
@@ -90,14 +97,16 @@
   --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  /* Radius */
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
-  --radius-3xl: 40px;
+  /* Radius — tightened for a structured, premium feel. Kept subtly
+     rounded (never fully sharp) for usability. These tokens back every
+     Tailwind `rounded-*` utility, so the whole app de-rounds at once. */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
+  --radius-3xl: 16px;
 
   /* Glass tokens (used by .glass-card and friends) */
   --glass-bg: rgba(255, 255, 255, 0.72);
@@ -180,7 +189,7 @@ body {
 :where(button, a, input, textarea, select):focus-visible {
   outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
-  border-radius: 10px;
+  border-radius: 6px;
 }
 
 ::selection {

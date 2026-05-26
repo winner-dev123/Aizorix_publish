@@ -390,7 +390,7 @@ export function AiChatBubble() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Pregunta lo que quieras a la IA…"
               disabled={typing || !sessionId}
-              className="h-10 flex-1 rounded-full border border-[color:var(--color-ink-200)] bg-[color:var(--color-surface-1)] px-4 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-400)] focus:border-[color:var(--color-brand-400)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[color:var(--color-brand-200)]/55 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-10 flex-1 rounded-lg border border-[color:var(--color-ink-200)] bg-[color:var(--color-surface-1)] px-4 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-400)] focus:border-[color:var(--color-brand-400)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[color:var(--color-brand-200)]/55 disabled:cursor-not-allowed disabled:opacity-60"
               aria-label="Mensaje"
             />
             <button

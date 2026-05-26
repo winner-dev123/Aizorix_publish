@@ -156,7 +156,7 @@ export default async function CrmDashboardPage() {
                   href="/app/agenda"
                   className="group flex items-center gap-4 rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-3.5 transition-all hover:-translate-y-0.5 hover:border-[color:var(--color-ink-200)] hover:shadow-md"
                 >
-                  <div className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[var(--shadow-sm)]">
+                  <div className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#a855f7] to-[#7c3aed] text-white shadow-[var(--shadow-sm)]">
                     <span className="text-[9px] font-bold uppercase tracking-wider opacity-80">
                       {monthAbbr}
                     </span>
@@ -200,9 +200,9 @@ export default async function CrmDashboardPage() {
             )}
             {data.recentConversations.map((c, i) => {
               const palette = [
-                "from-[#25d366] to-[#0d9488]",
-                "from-[#9b8cff] to-[#7c6cf5]",
-                "from-[#4cd49a] to-[#20bf7c]",
+                "from-[#a855f7] to-[#7c3aed]",
+                "from-[#a78bfa] to-[#7c3aed]",
+                "from-[#a78bfa] to-[#8b5cf6]",
                 "from-[#5aa6ff] to-[#2f88ff]",
                 "from-[#f9a3c2] to-[#e94585]",
               ];
@@ -234,7 +234,7 @@ export default async function CrmDashboardPage() {
                     <p className="truncate text-xs text-[color:var(--color-ink-500)]">{preview}</p>
                   </div>
                   {c.requiresHuman && (
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] px-1.5 text-[10px] font-black text-[color:var(--color-ink-900)] shadow-sm">
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] px-1.5 text-[10px] font-black text-white shadow-sm">
                       !
                     </span>
                   )}
@@ -259,7 +259,7 @@ export default async function CrmDashboardPage() {
         <CardHeader>
           <div className="flex items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2.5 text-[color:var(--color-ink-900)]">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#4cd49a] to-[#20bf7c] text-white shadow-[0_6px_14px_-6px_rgba(32,191,124,0.55)]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#a78bfa] to-[#8b5cf6] text-white shadow-[0_6px_14px_-6px_rgba(32,191,124,0.55)]">
                 <Bot className="h-4 w-4" />
               </span>
               Rendimiento de la IA · últimos 30 días

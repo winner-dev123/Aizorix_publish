@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signIn, auth } from "@/auth";
 import { Sparkles, Mail, ShieldCheck, CheckCircle2, ArrowRight } from "lucide-react";
+import { getServerT } from "@/i18n/server";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +14,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
   if (session?.user) redirect("/app");
 
   const { error, sent } = await searchParams;
+  const { t } = await getServerT();
 
   async function action(formData: FormData) {
     "use server";
@@ -44,6 +47,11 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
         className="pointer-events-none absolute inset-0 grid-bg opacity-30 [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_70%)]"
       />
 
+      {/* Language switcher — top-right corner */}
+      <div className="absolute right-5 top-5 z-10">
+        <LanguageSwitcher tone="light" align="right" />
+      </div>
+
       <div className="relative grid w-full max-w-4xl gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
         {/* Left — value prop card (dark violet) */}
         <aside className="relative hidden overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#1e1b4b] via-[#3730a3] to-[#5b21b6] p-8 text-white shadow-[0_30px_80px_-24px_rgba(76,29,149,0.55)] lg:block">
@@ -64,13 +72,10 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
               <Sparkles className="h-3 w-3" /> Aizorix Platform
             </span>
             <h2 className="mt-8 text-3xl font-black leading-[1.1] tracking-tight drop-shadow-[0_8px_24px_rgba(124,58,237,0.5)]">
-              Automatiza tu negocio
-              <br />
-              con IA desde un solo panel.
+              {t.signin.valueProp}
             </h2>
             <p className="mt-3 max-w-sm text-sm text-white/75">
-              Recepcionista virtual, CRM, agenda, campañas inteligentes y
-              métricas en tiempo real — todo conectado.
+              {t.signin.valuePropSub}
             </p>
 
             <ul className="mt-8 space-y-3 text-sm">
@@ -112,10 +117,10 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
               </div>
               <div>
                 <h1 className="text-xl font-black tracking-tight text-[color:var(--color-ink-900)]">
-                  Bienvenida de vuelta
+                  {t.signin.welcome}
                 </h1>
                 <p className="mt-0.5 text-sm text-[color:var(--color-ink-500)]">
-                  Accede con tu correo. Te enviaremos un enlace de un solo uso.
+                  {t.signin.subtitle}
                 </p>
               </div>
             </div>
@@ -123,28 +128,26 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
             {sent && (
               <p className="mt-6 flex items-start gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 ring-1 ring-emerald-200/70">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                Si tu correo está registrado, recibirás un enlace en breve.
-                Revisa también la consola del servidor en desarrollo.
+                {t.signin.sent}
               </p>
             )}
             {error && (
               <p className="mt-6 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200/70">
-                No hemos podido enviar el enlace. Comprueba que tu correo esté
-                registrado por la clínica.
+                {t.signin.error}
               </p>
             )}
 
             <form action={action} className="mt-7 space-y-4">
               <label className="block">
                 <span className="block text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
-                  Correo
+                  {t.signin.emailLabel}
                 </span>
                 <input
                   type="email"
                   name="email"
                   required
                   autoComplete="email"
-                  placeholder="tu@clinica.com"
+                  placeholder={t.signin.emailPlaceholder}
                   className="mt-1.5 block h-11 w-full rounded-xl border border-[color:var(--color-ink-200)] bg-white px-4 text-sm font-medium text-[color:var(--color-ink-900)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] transition-shadow focus:border-[color:var(--color-brand-400)] focus:outline-none focus:ring-4 focus:ring-[color:var(--color-brand-200)]/55"
                 />
               </label>
@@ -152,18 +155,18 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
                 type="submit"
                 className="group inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[#8b5cf6] via-[#7c3aed] to-[#6d28d9] px-5 text-sm font-bold text-white shadow-[0_10px_24px_-12px_rgba(124,58,237,0.55)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_36px_-14px_rgba(124,58,237,0.7)] active:scale-[0.98]"
               >
-                Enviar enlace
+                {t.signin.submit}
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </button>
             </form>
 
             <p className="mt-6 text-center text-xs text-[color:var(--color-ink-500)]">
-              ¿Eres dueño/a y aún no tienes cuenta?{" "}
+              {t.signin.noAccount}{" "}
               <Link
                 href="/onboarding"
                 className="font-bold text-[color:var(--color-brand-700)] underline-offset-4 hover:underline"
               >
-                Empezar onboarding
+                {t.signin.startOnboarding}
               </Link>
             </p>
           </div>

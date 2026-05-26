@@ -424,7 +424,7 @@ export function AiDemo({
                   className={cn(
                     "max-w-[75%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm shadow-sm",
                     isClient
-                      ? "rounded-tr-md bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_8px_22px_-10px_rgba(13,148,136,0.5)]"
+                      ? "rounded-tr-md bg-gradient-to-br from-[#a855f7] via-[#8b5cf6] to-[#7c3aed] text-white shadow-[0_8px_22px_-10px_rgba(13,148,136,0.5)]"
                       : "rounded-tl-md bg-white text-[color:var(--color-ink-800)] ring-1 ring-[color:var(--color-ink-100)]",
                   )}
                 >

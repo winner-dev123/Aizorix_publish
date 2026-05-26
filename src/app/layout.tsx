@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { HTML_LANG } from "@/i18n/config";
+import { getServerT } from "@/i18n/server";
+import { getDictionary } from "@/i18n/dictionaries";
+import { LocaleProvider } from "@/i18n/locale-context";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -21,16 +25,21 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://aizorix.ai"),
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const { locale } = await getServerT();
+  const dictionary = getDictionary(locale);
+
   return (
     <html
-      lang="es"
+      lang={HTML_LANG[locale]}
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="relative min-h-full flex flex-col bg-white text-[color:var(--color-ink-900)] selection:bg-[color:var(--color-brand-200)] selection:text-[color:var(--color-ink-900)]">
-        {children}
+        <LocaleProvider locale={locale} dictionary={dictionary}>
+          {children}
+        </LocaleProvider>
       </body>
     </html>
   );

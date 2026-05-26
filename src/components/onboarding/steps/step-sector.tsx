@@ -48,7 +48,7 @@ export function StepSector() {
                     className={cn(
                       "flex h-12 w-12 items-center justify-center rounded-2xl shadow-[var(--shadow-sm)] transition-all",
                       selected
-                        ? "bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)]"
+                        ? "bg-gradient-to-br from-[#a855f7] via-[#8b5cf6] to-[#7c3aed] text-white"
                         : "bg-gradient-to-br from-[color:var(--color-surface-2)] to-white text-[color:var(--color-coral-500)] ring-1 ring-[color:var(--color-ink-100)] group-hover:scale-105",
                     )}
                   >

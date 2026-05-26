@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/locale-context";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 
 const TITLES: Record<string, { title: string; sub?: string }> = {
   "/app": { title: "Dashboard", sub: "Resumen de hoy y próximas acciones" },
@@ -57,6 +59,7 @@ export function CrmTopbar({
   pendingAutomations?: number;
   notificationCount?: number;
 }) {
+  const { t } = useT();
   const pathname = usePathname();
   const fallback =
     pathname.startsWith("/app/clients/")
@@ -100,7 +103,7 @@ export function CrmTopbar({
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--color-ink-400)]" />
           <Input
             className="h-10 rounded-2xl border-transparent bg-white/85 pl-10 pr-16 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_4px_16px_-8px_rgba(15,21,44,0.08)] hover:bg-white"
-            placeholder="Buscar clientes, conversaciones, automatizaciones…"
+            placeholder={t.topbar.searchPlaceholder}
           />
           <span className="pointer-events-none absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 rounded-md border border-[color:var(--color-ink-200)] bg-[color:var(--color-ink-50)] px-1.5 py-0.5 text-[10px] font-medium text-[color:var(--color-ink-500)]">
             <Command className="h-3 w-3" />K
@@ -111,10 +114,10 @@ export function CrmTopbar({
       {/* Automations chip — violet gradient, reference shows "Mis automatizaciones" here */}
       <Link
         href="/app/campaigns"
-        className="hidden items-center gap-2 rounded-full bg-gradient-to-br from-[#8b5cf6] via-[#7c3aed] to-[#6d28d9] px-4 py-2 text-xs font-bold text-white shadow-[0_10px_24px_-12px_rgba(124,58,237,0.55)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_36px_-14px_rgba(124,58,237,0.7)] active:scale-95 sm:inline-flex"
+        className="hidden items-center gap-2 rounded-lg bg-gradient-to-br from-[#8b5cf6] via-[#7c3aed] to-[#6d28d9] px-4 py-2 text-xs font-bold text-white shadow-[0_10px_24px_-12px_rgba(124,58,237,0.55)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_36px_-14px_rgba(124,58,237,0.7)] active:scale-95 sm:inline-flex"
       >
         <Sparkles className="h-3.5 w-3.5" />
-        Mis automatizaciones
+        {t.topbar.myAutomations}
         {pendingAutomations > 0 && (
           <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-black backdrop-blur">
             {pendingAutomations}
@@ -122,10 +125,13 @@ export function CrmTopbar({
         )}
       </Link>
 
+      {/* Language switcher */}
+      <LanguageSwitcher tone="light" align="right" />
+
       {/* Help link */}
       <Link
         href="/app/help"
-        aria-label="Ayuda"
+        aria-label={t.topbar.help}
         className="hidden h-10 w-10 items-center justify-center rounded-full text-[color:var(--color-ink-500)] transition hover:bg-[color:var(--color-ink-100)] hover:text-[color:var(--color-ink-900)] md:flex"
       >
         <HelpCircle className="h-4 w-4" />
@@ -135,7 +141,7 @@ export function CrmTopbar({
       <button
         type="button"
         className="relative flex h-10 w-10 items-center justify-center rounded-full text-[color:var(--color-ink-600)] transition hover:bg-[color:var(--color-ink-100)] hover:text-[color:var(--color-ink-900)]"
-        aria-label="Notificaciones"
+        aria-label={t.topbar.notifications}
       >
         <Bell className="h-4 w-4" />
         {notificationCount > 0 && (

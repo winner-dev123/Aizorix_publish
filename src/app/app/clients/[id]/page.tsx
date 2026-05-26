@@ -108,7 +108,7 @@ export default async function ClientProfilePage({
 
           <CardContent className="-mt-12 p-6 pt-0">
             <div className="flex flex-col items-center text-center">
-              <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-3xl font-black text-[color:var(--color-ink-900)] shadow-[0_18px_44px_-16px_rgba(13,148,136,0.55)] ring-4 ring-white">
+              <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-[#a855f7] via-[#8b5cf6] to-[#7c3aed] text-3xl font-black text-white shadow-[0_18px_44px_-16px_rgba(13,148,136,0.55)] ring-4 ring-white">
                 {initials.toUpperCase() || "?"}
               </div>
               <h2 className="mt-4 text-2xl font-black tracking-tight">{fullName}</h2>

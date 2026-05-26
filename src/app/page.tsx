@@ -28,6 +28,16 @@ import { Fade } from "@/components/motion/fade";
 import { CountUp } from "@/components/motion/count-up";
 import { AiChatBubble } from "@/components/landing/ai-chat-bubble";
 
+/**
+ * Hero building image. Defaults to a high-quality Unsplash glass tower at
+ * blue hour (free to use, whitelisted in next.config). To use the EXACT
+ * reference render instead, drop the file at `public/hero-building.jpg`
+ * and change this constant to "/hero-building.jpg" — that's the only edit
+ * needed for pixel-fidelity.
+ */
+const HERO_BUILDING_SRC =
+  "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&auto=format&fit=crop&q=80";
+
 const features = [
   {
     icon: Bot,
@@ -68,45 +78,46 @@ const features = [
 ] as const;
 
 const TONE_STYLES: Record<string, { card: string; icon: string; ring: string }> = {
+  // Palette refreshed to the violet/blue brand family — no more teal/green.
   coral: {
-    card: "from-[#e6f4f1] to-white",
-    icon: "from-[#4cd49a] to-[#0d9488] text-white",
-    ring: "ring-[color:var(--color-coral-100)]",
+    card: "from-[#f5f3ff] to-white",
+    icon: "from-[#a78bfa] to-[#6d28d9] text-white",
+    ring: "ring-[color:var(--color-brand-100)]",
   },
   lavender: {
     card: "from-[#f5f3ff] to-white",
-    icon: "from-[#bcb1ff] to-[#7c6cf5] text-white",
-    ring: "ring-[color:var(--color-lavender-100)]",
+    icon: "from-[#c4b5fd] to-[#7c3aed] text-white",
+    ring: "ring-[color:var(--color-brand-100)]",
   },
   mint: {
-    card: "from-[#effdf6] to-white",
-    icon: "from-[#7eddb4] to-[#20bf7c] text-white",
-    ring: "ring-[color:var(--color-mint-100)]",
+    card: "from-[#eef2ff] to-white",
+    icon: "from-[#818cf8] to-[#4338ca] text-white",
+    ring: "ring-indigo-100",
   },
   sky: {
     card: "from-[#eff7ff] to-white",
-    icon: "from-[#8ec0ff] to-[#2f88ff] text-white",
+    icon: "from-[#60a5fa] to-[#2563eb] text-white",
     ring: "ring-[color:var(--color-sky-100)]",
   },
   rose: {
-    card: "from-[#fef4f8] to-white",
-    icon: "from-[#f9a3c2] to-[#e94585] text-white",
-    ring: "ring-[color:var(--color-rose-100)]",
+    card: "from-[#f5f0ff] to-white",
+    icon: "from-[#a78bfa] to-[#7c3aed] text-white",
+    ring: "ring-[color:var(--color-brand-100)]",
   },
   brand: {
-    card: "from-[#effdf6] to-white",
-    icon: "from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)]",
+    card: "from-[#f5f3ff] to-white",
+    icon: "from-[#8b5cf6] to-[#6d28d9] text-white",
     ring: "ring-[color:var(--color-brand-100)]",
   },
 };
 
 const sectors = [
   { name: "Clínicas Estéticas", img: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=700&auto=format&fit=crop&q=80" },
-  { name: "Medicina Estética", img: "https://images.unsplash.com/photo-1614859275639-e87b89d51b94?w=700&auto=format&fit=crop&q=80" },
+  { name: "Medicina Estética", img: "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=700&auto=format&fit=crop&q=80" },
   { name: "Dentistas", img: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=700&auto=format&fit=crop&q=80" },
   { name: "Inmobiliarias", img: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=700&auto=format&fit=crop&q=80" },
   { name: "Restaurantes", img: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=700&auto=format&fit=crop&q=80" },
-  { name: "Talleres", img: "https://images.unsplash.com/photo-1632823469850-1b7b1e8b7e6f?w=700&auto=format&fit=crop&q=80" },
+  { name: "Talleres", img: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=700&auto=format&fit=crop&q=80" },
   { name: "Peluquerías", img: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=700&auto=format&fit=crop&q=80" },
   { name: "Gimnasios", img: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=700&auto=format&fit=crop&q=80" },
   { name: "Clínicas Médicas", img: "https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=700&auto=format&fit=crop&q=80" },
@@ -319,37 +330,57 @@ export default function HomePage() {
               {/* Background aurora glow */}
               <div className="absolute -inset-12 -z-10 rounded-[44px] bg-gradient-to-br from-[#c4b5fd]/60 via-[#a78bfa]/30 to-[#7c3aed]/40 blur-3xl opacity-80" />
 
-              {/* Main banner — gradient panel with light streaks */}
-              <div className="relative overflow-hidden rounded-[32px] border border-white/30 bg-gradient-to-br from-[#1e1b4b] via-[#3730a3] to-[#5b21b6] p-8 shadow-[0_30px_80px_-24px_rgba(76,29,149,0.55)] aspect-[5/4]">
-                {/* Decorative streaks */}
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#a78bfa]/40 blur-3xl"
-                />
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -bottom-20 -left-10 h-60 w-60 rounded-full bg-[#7c3aed]/35 blur-3xl"
-                />
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute right-1/4 top-1/2 h-px w-3/4 -translate-y-1/2 rotate-[-12deg] bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              {/* Main banner — real glass-building photo with a violet
+                  atmosphere overlay, matching the reference image.
+
+                  IMAGE SOURCE: drop your exact reference render at
+                  public/hero-building.jpg for pixel-fidelity — the <source>
+                  below prefers it. Until then we fall back to a high-quality
+                  Unsplash glass tower at blue hour (free to use). */}
+              <div className="relative overflow-hidden rounded-[28px] border border-white/40 shadow-[0_30px_80px_-24px_rgba(76,29,149,0.55)] aspect-[5/4]">
+                <Image
+                  src={HERO_BUILDING_SRC}
+                  alt="Edificio corporativo de cristal al atardecer — Aizorix AI"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 90vw, 45vw"
+                  className="object-cover"
                 />
 
-                {/* Mock-up of the platform brand inside the banner */}
-                <div className="relative flex h-full flex-col items-center justify-center text-center">
-                  <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/85 ring-1 ring-white/20 backdrop-blur-sm">
-                    Aizorix · Platform
-                  </span>
-                  <p className="mt-6 text-5xl font-black tracking-tight text-white drop-shadow-[0_8px_24px_rgba(124,58,237,0.5)] sm:text-6xl">
+                {/* Violet/indigo atmosphere overlay — unifies the photo with
+                    the brand and recreates the reference's dusk mood. */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#1e1b4b]/72 via-[#4338ca]/45 to-[#7c3aed]/55 mix-blend-multiply"
+                />
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1e1b4b]/70 via-transparent to-[#a78bfa]/15"
+                />
+                {/* Light streak sweeping across, like the reference. */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute right-0 top-1/3 h-px w-2/3 rotate-[-10deg] bg-gradient-to-r from-transparent via-white/50 to-transparent"
+                />
+                {/* Glow accents */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#a78bfa]/30 blur-3xl"
+                />
+
+                {/* AIZORIX wordmark on the building, as in the reference. */}
+                <div className="absolute inset-x-0 top-7 flex justify-center">
+                  <span className="text-2xl font-black tracking-[0.14em] text-white/90 drop-shadow-[0_4px_18px_rgba(0,0,0,0.5)] sm:text-3xl">
                     AIZORIX
-                  </p>
-                  <p className="mt-2 text-xs font-medium text-white/70">
-                    Automation · CRM · IA
-                  </p>
-                  <div className="mt-8 flex items-center gap-2">
-                    <Bot className="h-4 w-4 text-white/80" />
-                    <p className="text-xs text-white/80">Operativo · 99.97% uptime</p>
-                  </div>
+                  </span>
+                </div>
+                {/* Status chip bottom-left */}
+                <div className="absolute bottom-5 left-5 flex items-center gap-2 rounded-full bg-white/12 px-3 py-1.5 text-[11px] font-semibold text-white ring-1 ring-white/20 backdrop-blur-md">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                  </span>
+                  Operativo · 99,97% uptime
                 </div>
               </div>
 
@@ -628,7 +659,7 @@ export default function HomePage() {
                 "Permisos por rol (recepción, técnico, admin)",
               ].map((l) => (
                 <li key={l} className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[color:var(--color-mint-200)] to-[color:var(--color-mint-500)] text-white shadow-[0_4px_10px_-4px_rgba(32,191,124,0.5)]">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#a78bfa] to-[#6d28d9] text-white shadow-[0_4px_10px_-4px_rgba(124,58,237,0.5)]">
                     <CheckCircle2 className="h-3 w-3" />
                   </span>
                   {l}
@@ -644,12 +675,12 @@ export default function HomePage() {
 
           {/* CRM mock */}
           <div className="relative">
-            <div className="absolute -inset-10 -z-10 rounded-[48px] bg-gradient-to-br from-[color:var(--color-brand-100)] via-[color:var(--color-coral-100)] to-[color:var(--color-lavender-100)] blur-3xl opacity-80" />
+            <div className="absolute -inset-10 -z-10 rounded-[48px] bg-gradient-to-br from-[color:var(--color-brand-100)] via-[color:var(--color-sky-100)] to-[color:var(--color-lavender-100)] blur-3xl opacity-80" />
             <div className="overflow-hidden rounded-3xl border border-white/70 bg-white shadow-[var(--shadow-xl)] ring-1 ring-[color:var(--color-ink-100)]">
               <div className="flex items-center gap-2 border-b border-[color:var(--color-ink-100)] bg-[color:var(--color-surface-1)] px-4 py-3">
-                <span className="h-3 w-3 rounded-full bg-[color:var(--color-rose-400)]" />
-                <span className="h-3 w-3 rounded-full bg-[color:var(--color-brand-400)]" />
-                <span className="h-3 w-3 rounded-full bg-[color:var(--color-mint-400)]" />
+                <span className="h-3 w-3 rounded-full bg-[#f87171]" />
+                <span className="h-3 w-3 rounded-full bg-[#fbbf24]" />
+                <span className="h-3 w-3 rounded-full bg-[#34d399]" />
                 <span className="ml-3 truncate text-xs font-medium text-[color:var(--color-ink-500)]">
                   app.aizorix.ai/dashboard
                 </span>
@@ -672,14 +703,14 @@ export default function HomePage() {
                       key={i.l}
                       className={`mb-1 flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] font-medium ${
                         i.on
-                          ? "bg-gradient-to-br from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)]"
+                          ? "bg-gradient-to-br from-[#7c3aed] to-[#6d28d9] text-white"
                           : "text-[color:var(--color-ink-600)]"
                       }`}
                     >
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${
                           i.on
-                            ? "bg-[color:var(--color-ink-900)]"
+                            ? "bg-white"
                             : "bg-[color:var(--color-ink-300)]"
                         }`}
                       />
@@ -692,10 +723,10 @@ export default function HomePage() {
                 <div className="col-span-9 p-4">
                   <div className="grid grid-cols-4 gap-2">
                     {[
-                      { l: "Leads 7d", v: "38", d: "+22%", c: "from-[#e6f4f1] to-white" },
+                      { l: "Leads 7d", v: "38", d: "+22%", c: "from-[#f5f3ff] to-white" },
                       { l: "Citas", v: "14", d: "3 hoy", c: "from-[#eff7ff] to-white" },
                       { l: "Cierre", v: "23,7%", d: "+4%", c: "from-[#f5f3ff] to-white" },
-                      { l: "Ingresos", v: "8,4k €", d: "+12%", c: "from-[#effdf6] to-white" },
+                      { l: "Ingresos", v: "8,4k €", d: "+12%", c: "from-[#eef2ff] to-white" },
                     ].map((s) => (
                       <div
                         key={s.l}
@@ -705,7 +736,7 @@ export default function HomePage() {
                           {s.l}
                         </p>
                         <p className="mt-0.5 text-base font-black">{s.v}</p>
-                        <p className="text-[9px] text-[color:var(--color-mint-500)]">
+                        <p className="text-[9px] font-semibold text-emerald-600">
                           {s.d}
                         </p>
                       </div>
@@ -717,11 +748,11 @@ export default function HomePage() {
                       Embudo de conversión
                     </p>
                     {[
-                      { l: "Leads", w: 100, g: "from-[#5aa6ff] to-[#2f88ff]" },
-                      { l: "Conversaciones IA", w: 73, g: "from-[#9b8cff] to-[#7c6cf5]" },
-                      { l: "Interesados", w: 47, g: "from-[#25d366] to-[#14b87a]" },
-                      { l: "Citas agendadas", w: 31, g: "from-[#4cd49a] to-[#0d9488]" },
-                      { l: "Ventas cerradas", w: 24, g: "from-[#4cd49a] to-[#20bf7c]" },
+                      { l: "Leads", w: 100, g: "from-[#60a5fa] to-[#2563eb]" },
+                      { l: "Conversaciones IA", w: 73, g: "from-[#a78bfa] to-[#7c3aed]" },
+                      { l: "Interesados", w: 47, g: "from-[#8b5cf6] to-[#6d28d9]" },
+                      { l: "Citas agendadas", w: 31, g: "from-[#818cf8] to-[#4338ca]" },
+                      { l: "Ventas cerradas", w: 24, g: "from-[#22d3ee] to-[#0891b2]" },
                     ].map((b) => (
                       <div key={b.l} className="mt-2 flex items-center gap-2">
                         <span className="w-28 text-[10px] text-[color:var(--color-ink-600)]">
@@ -850,7 +881,7 @@ export default function HomePage() {
 
           {/* preview card */}
           <div className="relative">
-            <div className="absolute -inset-8 -z-10 rounded-[44px] bg-gradient-to-br from-[color:var(--color-coral-200)] to-[color:var(--color-brand-200)] blur-3xl opacity-70" />
+            <div className="absolute -inset-8 -z-10 rounded-[44px] bg-gradient-to-br from-[color:var(--color-sky-200)] to-[color:var(--color-brand-200)] blur-3xl opacity-70" />
             <div className="rounded-3xl border border-white/70 bg-white/95 p-6 shadow-[var(--shadow-xl)] backdrop-blur-xl ring-1 ring-[color:var(--color-ink-100)]">
               <div className="flex items-center justify-between">
                 <div>
@@ -879,7 +910,7 @@ export default function HomePage() {
                     <dd
                       className={
                         r.accent
-                          ? "font-bold text-[color:var(--color-coral-500)]"
+                          ? "font-bold text-[color:var(--color-brand-600)]"
                           : "font-semibold text-[color:var(--color-ink-900)]"
                       }
                     >
@@ -889,7 +920,7 @@ export default function HomePage() {
                 ))}
               </dl>
 
-              <div className="mt-5 rounded-2xl bg-gradient-to-br from-[color:var(--color-brand-100)] via-[color:var(--color-coral-100)] to-white p-5 ring-1 ring-[color:var(--color-brand-200)]/60">
+              <div className="mt-5 rounded-2xl bg-gradient-to-br from-[color:var(--color-brand-100)] via-[color:var(--color-sky-100)] to-white p-5 ring-1 ring-[color:var(--color-brand-200)]/60">
                 <p className="text-xs uppercase tracking-wider text-[color:var(--color-brand-700)]">
                   Ingresos potenciales
                 </p>

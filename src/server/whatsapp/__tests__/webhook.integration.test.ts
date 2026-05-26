@@ -50,6 +50,22 @@ describeMaybe("whatsapp webhook (DB)", () => {
   });
 
   afterAll(async () => {
+    // Clean up the appointment + conversation this test creates so it
+    // doesn't leave Diana's 2026-06-08 11:00 slot occupied. Otherwise, on
+    // dates where another test's relative slot (e.g. "today + 14 days")
+    // lands on 2026-06-08, that test hits a spurious OVERLAP. Cleaning up
+    // in afterAll (not just beforeAll) keeps the suite order-independent.
+    const patient = await prisma.patient.findFirst({
+      where: { clinicId, phone: patientPhone },
+    });
+    if (patient) {
+      await prisma.appointment.deleteMany({ where: { patientId: patient.id } });
+      await prisma.aiMemory.deleteMany({ where: { patientId: patient.id } });
+    }
+    await prisma.message.deleteMany({
+      where: { conversation: { externalChatId: patientPhone } },
+    });
+    await prisma.conversation.deleteMany({ where: { externalChatId: patientPhone } });
     await prisma.$disconnect();
   });
 

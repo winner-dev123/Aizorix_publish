@@ -76,7 +76,7 @@ export function StepModules() {
                           className={cn(
                             "flex h-11 w-11 items-center justify-center rounded-xl shadow-[var(--shadow-sm)] transition",
                             active
-                              ? "bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)]"
+                              ? "bg-gradient-to-br from-[#a855f7] via-[#8b5cf6] to-[#7c3aed] text-white"
                               : "bg-[color:var(--color-ink-50)] text-[color:var(--color-ink-500)]",
                           )}
                         >

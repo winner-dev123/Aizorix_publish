@@ -117,7 +117,7 @@ export default async function ClientsPage({
                       href={`/app/clients/${p.id}`}
                       className="flex items-center gap-3 font-medium"
                     >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] text-xs font-black text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(13,148,136,0.45)]">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] text-xs font-black text-white shadow-[0_6px_14px_-6px_rgba(13,148,136,0.45)]">
                         {initials(p)}
                       </div>
                       <div>

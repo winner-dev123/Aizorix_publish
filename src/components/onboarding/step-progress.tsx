@@ -26,7 +26,7 @@ export function StepProgress({ current }: StepProgressProps) {
             <span className="text-[color:var(--color-brand-600)]">{pct}%</span>
           </p>
         </div>
-        <span className="hidden rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[color:var(--color-ink-900)] shadow-sm sm:inline-block">
+        <span className="hidden rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white shadow-sm sm:inline-block">
           {pct}%
         </span>
       </div>
@@ -34,7 +34,7 @@ export function StepProgress({ current }: StepProgressProps) {
       {/* Bar */}
       <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--color-ink-100)]">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-[#25d366] via-[#14b87a] to-[#0d9488] transition-all duration-700"
+          className="h-full rounded-full bg-gradient-to-r from-[#a855f7] via-[#8b5cf6] to-[#7c3aed] transition-all duration-700"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -61,9 +61,9 @@ export function StepProgress({ current }: StepProgressProps) {
                     className={cn(
                       "flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-black transition-all duration-300",
                       status === "current" &&
-                        "bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_10px_22px_-6px_rgba(13,148,136,0.55)] ring-4 ring-white",
+                        "bg-gradient-to-br from-[#a855f7] via-[#8b5cf6] to-[#7c3aed] text-white shadow-[0_10px_22px_-6px_rgba(13,148,136,0.55)] ring-4 ring-white",
                       status === "done" &&
-                        "bg-gradient-to-br from-[#7eddb4] to-[#20bf7c] text-white shadow-[0_6px_14px_-6px_rgba(32,191,124,0.55)]",
+                        "bg-gradient-to-br from-[#c4b5fd] to-[#8b5cf6] text-white shadow-[0_6px_14px_-6px_rgba(32,191,124,0.55)]",
                       status === "upcoming" &&
                         "border-2 border-[color:var(--color-ink-200)] bg-white text-[color:var(--color-ink-400)] group-hover:border-[color:var(--color-ink-400)]",
                     )}
@@ -92,7 +92,7 @@ export function StepProgress({ current }: StepProgressProps) {
                     className={cn(
                       "mx-2 h-[3px] w-8 rounded-full transition-colors",
                       step.num < current
-                        ? "bg-gradient-to-r from-[#7eddb4] to-[#20bf7c]"
+                        ? "bg-gradient-to-r from-[#c4b5fd] to-[#8b5cf6]"
                         : "bg-[color:var(--color-ink-100)]",
                     )}
                   />

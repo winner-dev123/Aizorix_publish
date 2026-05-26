@@ -49,7 +49,7 @@ export function StepReady() {
           }}
         />
         <div className="relative flex items-center gap-5">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_14px_36px_-12px_rgba(13,148,136,0.6)]">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#a855f7] via-[#8b5cf6] to-[#7c3aed] text-white shadow-[0_14px_36px_-12px_rgba(13,148,136,0.6)]">
             <PartyPopper className="h-6 w-6" />
           </div>
           <div className="min-w-0">

@@ -148,7 +148,7 @@ export function CampaignsView({ audience }: { audience: CampaignAudience }) {
                       className={cn(
                         "flex h-10 w-10 items-center justify-center rounded-xl shadow-sm",
                         active
-                          ? "bg-gradient-to-br from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)]"
+                          ? "bg-gradient-to-br from-[#a855f7] to-[#7c3aed] text-white"
                           : "bg-white text-[color:var(--color-ink-900)]",
                       )}
                     >
@@ -165,7 +165,7 @@ export function CampaignsView({ audience }: { audience: CampaignAudience }) {
                     {formatNumber(count)} pacientes
                   </p>
                   {active && (
-                    <span className="absolute right-3 top-3 rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[color:var(--color-ink-900)] shadow-sm">
+                    <span className="absolute right-3 top-3 rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
                       Activa
                     </span>
                   )}

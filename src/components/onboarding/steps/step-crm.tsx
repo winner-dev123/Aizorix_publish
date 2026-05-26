@@ -37,7 +37,7 @@ export function StepCRM() {
             key={h.title}
             className="flex items-start gap-3 rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-5 card-hover"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#25d366] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(13,148,136,0.4)]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#a855f7] to-[#7c3aed] text-white shadow-[0_6px_14px_-6px_rgba(13,148,136,0.4)]">
               <h.icon className="h-5 w-5" />
             </div>
             <div>

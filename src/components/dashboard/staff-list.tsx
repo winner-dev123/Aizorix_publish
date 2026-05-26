@@ -185,7 +185,7 @@ export function StaffList({
                 className={`flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between ${row.active ? "" : "opacity-60"}`}
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#bcb1ff] to-[#7c6cf5] text-xs font-black text-white">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#c4b5fd] to-[#7c3aed] text-xs font-black text-white">
                     {(row.name ?? row.email).slice(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">

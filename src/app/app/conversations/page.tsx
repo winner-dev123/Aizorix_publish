@@ -152,7 +152,7 @@ export default async function ConversationsPage({
                   {isActive && (
                     <span className="absolute left-0 top-1/2 h-9 w-1 -translate-y-1/2 rounded-r-full bg-[color:var(--color-brand-400)]" />
                   )}
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#25d366] to-[#0d9488] text-xs font-black text-[color:var(--color-ink-900)] shadow-[0_6px_14px_-6px_rgba(13,148,136,0.4)]">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] text-xs font-black text-white shadow-[0_6px_14px_-6px_rgba(13,148,136,0.4)]">
                     {initials || "?"}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -212,7 +212,7 @@ function Thread({ conv, tz }: { conv: ConversationWithDetails; tz: string }) {
     <>
       <header className="flex items-center justify-between gap-3 border-b border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#bcb1ff] to-[#7c6cf5] text-xs font-black text-white shadow-[0_6px_14px_-6px_rgba(124,108,245,0.45)]">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#c4b5fd] to-[#7c3aed] text-xs font-black text-white shadow-[0_6px_14px_-6px_rgba(124,108,245,0.45)]">
             {initials || "?"}
           </div>
           <div>
@@ -263,7 +263,7 @@ function Thread({ conv, tz }: { conv: ConversationWithDetails; tz: string }) {
                   "group max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-sm",
                   isPatient
                     ? "rounded-tl-md bg-white text-[color:var(--color-ink-800)] ring-1 ring-[color:var(--color-ink-100)]"
-                    : "rounded-tr-md bg-gradient-to-br from-[#25d366] via-[#14b87a] to-[#0d9488] text-[color:var(--color-ink-900)] shadow-[0_8px_22px_-10px_rgba(13,148,136,0.5)]",
+                    : "rounded-tr-md bg-gradient-to-br from-[#a855f7] via-[#8b5cf6] to-[#7c3aed] text-white shadow-[0_8px_22px_-10px_rgba(13,148,136,0.5)]",
                 )}
               >
                 <p className="whitespace-pre-wrap">{m.content}</p>
