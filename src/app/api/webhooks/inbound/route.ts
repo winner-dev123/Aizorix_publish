@@ -156,22 +156,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const clinic = await resolveClinic(request);
-  if (!clinic) {
-    incr("aizorix_inbound_webhook_requests_total", { status: "404" });
-    return withCors(
-      NextResponse.json(
-        {
-          error: "CLINIC_NOT_FOUND",
-          message:
-            "No hay clínica configurada. Define DEMO_CLINIC_SLUG, pasa ?clinicSlug=… o el header X-Aizorix-Clinic-Slug.",
-        },
-        { status: 404 },
-      ),
-    );
-  }
-
+  // Clinic resolution + orchestrate share ONE try/catch so a DB/LLM throw
+  // always returns a JSON body — never a bare empty 500 that breaks the
+  // caller's response.json() (which is what crashed demo.html).
   try {
+    const clinic = await resolveClinic(request);
+    if (!clinic) {
+      incr("aizorix_inbound_webhook_requests_total", { status: "404" });
+      return withCors(
+        NextResponse.json(
+          {
+            error: "CLINIC_NOT_FOUND",
+            message:
+              "No hay clínica configurada. Ejecuta el seed, define DEMO_CLINIC_SLUG, pasa ?clinicSlug=… o el header X-Aizorix-Clinic-Slug.",
+          },
+          { status: 404 },
+        ),
+      );
+    }
+
     const envelope = await orchestrate({
       clinicId: clinic.id,
       channel: "WHATSAPP",
@@ -206,7 +209,8 @@ export async function POST(request: NextRequest) {
       NextResponse.json(
         {
           error: "INTERNAL",
-          message: e instanceof Error ? e.message : "unknown",
+          message: "El asistente no pudo responder.",
+          detail: e instanceof Error ? e.message : String(e),
         },
         { status: 500 },
       ),

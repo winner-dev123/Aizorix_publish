@@ -116,23 +116,29 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const url = new URL(request.url);
-  const slugFromQuery = url.searchParams.get("clinicSlug") || url.searchParams.get("clinic");
-  const clinic = await resolveDemoClinic(slugFromQuery);
-  if (!clinic) {
-    incr("aizorix_landing_chat_requests_total", { status: "404" });
-    return withCors(
-      NextResponse.json(
-        {
-          error: "CLINIC_NOT_FOUND",
-          message: "No hay clínica de demo configurada. Define DEMO_CLINIC_SLUG.",
-        },
-        { status: 404 },
-      ),
-    );
-  }
-
+  // Everything that can touch the DB / LLM lives inside ONE try/catch so a
+  // throw (Prisma can't connect, engine missing, OpenAI key absent…) ALWAYS
+  // returns a JSON body — never a bare empty 500 that crashes the client's
+  // response.json(). `detail` is included so the demo is debuggable.
   try {
+    const url = new URL(request.url);
+    const slugFromQuery =
+      url.searchParams.get("clinicSlug") || url.searchParams.get("clinic");
+    const clinic = await resolveDemoClinic(slugFromQuery);
+    if (!clinic) {
+      incr("aizorix_landing_chat_requests_total", { status: "404" });
+      return withCors(
+        NextResponse.json(
+          {
+            error: "CLINIC_NOT_FOUND",
+            message:
+              "No hay clínica de demo configurada. Ejecuta el seed o define DEMO_CLINIC_SLUG.",
+          },
+          { status: 404 },
+        ),
+      );
+    }
+
     const envelope = await orchestrate({
       clinicId: clinic.id,
       channel: "WEB",
@@ -154,19 +160,15 @@ export async function POST(request: NextRequest) {
   } catch (e) {
     console.error("[/api/chat/landing]", e);
     incr("aizorix_landing_chat_requests_total", { status: "500" });
-    // Set DIAG_ERRORS=1 in the Netlify env to temporarily expose the real
-    // cause (DB connection refused, OPENAI_API_KEY missing, Prisma engine
-    // not found, …) in the response body — then remove it once fixed.
-    const detail =
-      process.env.DIAG_ERRORS === "1"
-        ? { detail: e instanceof Error ? e.message : String(e) }
-        : {};
     return withCors(
       NextResponse.json(
         {
           error: "INTERNAL",
           message: "La IA no pudo responder. Inténtalo en un momento.",
-          ...detail,
+          // Real cause (DB refused / key missing / engine not found). Safe
+          // to surface on this public demo endpoint and essential for
+          // diagnosing the deploy. See /api/health for a fuller picture.
+          detail: e instanceof Error ? e.message : String(e),
         },
         { status: 500 },
       ),

@@ -1506,11 +1506,24 @@
             }),
           });
 
-          if (!response.ok) {
-            throw new Error("Webhook error: " + response.status);
+          // Parse defensively: a crashing serverless function can return an
+          // empty body, so response.json() would throw "Unexpected end of
+          // JSON input". Read text first, then try to parse.
+          const raw = await response.text();
+          let data = {};
+          if (raw) {
+            try {
+              data = JSON.parse(raw);
+            } catch {
+              data = {};
+            }
           }
 
-          const data = await response.json();
+          if (!response.ok) {
+            const reason =
+              data.detail || data.message || data.error || ("HTTP " + response.status);
+            throw new Error(reason);
+          }
 
           // Minimum typing animation before showing reply
           await delay(TYPING_DELAY_MS);
@@ -1546,7 +1559,7 @@
           addMessage({
             id: uid(),
             type: "in",
-            text: "⚠️ Error conectando con la IA",
+            text: "⚠️ " + (error && error.message ? error.message : "Error conectando con la IA"),
             time: formatTime(),
           });
         } finally {
