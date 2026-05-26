@@ -1,0 +1,25 @@
+# Netlify configuration for Aizorix AI (Next.js 16 + Prisma + Postgres).
+#
+# IMPORTANT — set these environment variables in the Netlify dashboard
+# (Site settings → Environment variables). The local .env is NOT deployed:
+#   DATABASE_URL        Hosted Postgres (Neon/Supabase). Use the POOLED URL
+#                       with ?sslmode=require. NOT localhost.
+#   OPENAI_API_KEY      Your OpenAI key (sk-...).
+#   AUTH_SECRET         Random 32+ char secret for NextAuth.
+#   DEMO_CLINIC_SLUG    (optional) slug of the seeded demo clinic, e.g. "bellem".
+#   NEXTAUTH_URL        Your production URL, e.g. https://your-site.netlify.app
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Pin a modern Node for Next 16 + Prisma 6.
+  NODE_VERSION = "20"
+  # Keep Prisma's engine download reliable during build.
+  PRISMA_CLIENT_ENGINE_TYPE = "library"
+
+# The official Next.js runtime — handles SSR, route handlers (our API
+# routes), and image optimization on Netlify Functions.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

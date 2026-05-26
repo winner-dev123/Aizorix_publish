@@ -3,10 +3,17 @@
 
 generator client {
   provider = "prisma-client-js"
+  // `native` for local dev; the rhel targets are for serverless hosts
+  // (Netlify/Vercel run on AWS Lambda — Amazon Linux). Both OpenSSL
+  // variants are included so the engine loads regardless of the Node
+  // runtime image Netlify picks.
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
+  // Use a POOLED connection string in production (Neon/Supabase pgbouncer)
+  // so serverless functions don't exhaust direct-connection limits.
   url      = env("DATABASE_URL")
 }
 

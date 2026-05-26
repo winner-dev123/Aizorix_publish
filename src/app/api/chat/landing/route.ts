@@ -154,11 +154,19 @@ export async function POST(request: NextRequest) {
   } catch (e) {
     console.error("[/api/chat/landing]", e);
     incr("aizorix_landing_chat_requests_total", { status: "500" });
+    // Set DIAG_ERRORS=1 in the Netlify env to temporarily expose the real
+    // cause (DB connection refused, OPENAI_API_KEY missing, Prisma engine
+    // not found, …) in the response body — then remove it once fixed.
+    const detail =
+      process.env.DIAG_ERRORS === "1"
+        ? { detail: e instanceof Error ? e.message : String(e) }
+        : {};
     return withCors(
       NextResponse.json(
         {
           error: "INTERNAL",
           message: "La IA no pudo responder. Inténtalo en un momento.",
+          ...detail,
         },
         { status: 500 },
       ),
