@@ -1054,11 +1054,15 @@
       // open the file via http://localhost:3000/demo.html the relative URL
       // works without CORS hassle. The ?clinicSlug=bellem param targets the
       // seeded demo clinic; you can swap it or rely on DEMO_CLINIC_SLUG env.
-      const WEBHOOK_FULLSTACK =
-        "http://localhost:3000/api/webhooks/inbound?clinicSlug=bellem";
+      // RELATIVE url — resolves to whatever host serves this file:
+      // localhost during dev, your Netlify domain in production. No more
+      // hardcoded localhost (which broke on the deployed site).
+      const WEBHOOK_FULLSTACK = "/api/webhooks/inbound?clinicSlug=bellem";
       const STORAGE_KEY = "clinic-wa-demo-v1";
       const PHONE_STORAGE_KEY = "clinic-wa-demo-phone";
-      const MODE_STORAGE_KEY = "clinic-wa-demo-mode";
+      // -v2: bumped so anyone with the old "n8n" default saved in
+      // localStorage starts fresh on Full Stack (this app's backend).
+      const MODE_STORAGE_KEY = "clinic-wa-demo-mode-v2";
       const DEFAULT_PHONE = "+34622484214";
       const CONTACT_NAME = "Clínica Estética";
       const TYPING_DELAY_MS = 1000;
@@ -1121,11 +1125,13 @@
         headerStatus.classList.add("online");
       }
 
-      /** URL del webhook según modo: N8N o Full Stack. */
+      /** URL del webhook según modo: N8N o Full Stack. Default = Full Stack
+       *  so the demo talks to THIS deployed app's AI out of the box. Switch
+       *  to N8N only if you've wired that external flow. */
       function getTestMode() {
         try {
           const saved = localStorage.getItem(MODE_STORAGE_KEY);
-          return saved === "fullstack" ? "fullstack" : "n8n";
+          return saved === "n8n" ? "n8n" : "fullstack";
         } catch {
           return "n8n";
         }
