@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
  * edit while still thinking they can type.
  */
 const baseField =
-  "flex w-full rounded-xl border border-[color:var(--color-ink-200)] bg-white px-4 py-2.5 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-400)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] transition-shadow focus-visible:border-[color:var(--color-brand-400)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[color:var(--color-brand-200)]/55 disabled:cursor-not-allowed disabled:opacity-50 disabled:select-none";
+  "flex w-full rounded-xl border border-[color:var(--color-ink-200)] bg-white px-4 py-2.5 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-400)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] transition-shadow focus-visible:border-[color:var(--color-brand-400)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[color:var(--color-brand-200)]/55 disabled:cursor-not-allowed disabled:opacity-50 disabled:select-none dark:border-white/10 dark:bg-[color:var(--color-surface-1)] dark:shadow-none dark:placeholder:text-white/35 dark:focus-visible:border-[color:var(--color-brand-400)]";
 
 export const Input = React.forwardRef<
   HTMLInputElement,

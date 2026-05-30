@@ -42,6 +42,10 @@ export function StatCard({
         "group relative overflow-hidden bg-gradient-to-br transition-all duration-300",
         "hover:-translate-y-1 hover:border-[color:var(--color-brand-200)] hover:shadow-[var(--glow-violet-soft)]",
         accentClasses.split(" ").filter((c) => c.startsWith("from-") || c.startsWith("to-")).join(" "),
+        // Dark mode: flatten the light per-accent gradient onto a dark
+        // surface; the accent stays alive via the `before:` radial glow
+        // overlay below (which already uses the accent's coloured tint).
+        "dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10 dark:hover:border-[color:var(--color-brand-400)]/40",
         className,
       )}
     >

@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/locale-context";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import type { Theme } from "@/lib/theme";
 
 const TITLES: Record<string, { title: string; sub?: string }> = {
   "/app": { title: "Dashboard", sub: "Resumen de hoy y próximas acciones" },
@@ -52,12 +54,14 @@ export function CrmTopbar({
   userLabel,
   pendingAutomations = 0,
   notificationCount = 0,
+  theme = "light",
 }: {
   clinicName: string;
   userRole: string;
   userLabel: string;
   pendingAutomations?: number;
   notificationCount?: number;
+  theme?: Theme;
 }) {
   const { t } = useT();
   const pathname = usePathname();
@@ -74,7 +78,7 @@ export function CrmTopbar({
       className={cn(
         "sticky top-0 z-20 flex h-16 items-center gap-3 px-4 md:px-6",
         // Glassmorphism — matches the reference's glassy topbar
-        "border-b border-white/40 bg-white/75 backdrop-blur-2xl supports-[backdrop-filter]:bg-white/65",
+        "border-b border-white/40 bg-white/75 backdrop-blur-2xl supports-[backdrop-filter]:bg-white/65 dark:border-white/10 dark:bg-[color:var(--color-surface-1)]/85 dark:supports-[backdrop-filter]:bg-[color:var(--color-surface-1)]/65",
         "shadow-[0_1px_0_rgba(255,255,255,0.6)_inset,0_8px_24px_-12px_rgba(15,21,44,0.08)]",
       )}
     >
@@ -124,6 +128,9 @@ export function CrmTopbar({
           </span>
         )}
       </Link>
+
+      {/* Theme toggle */}
+      <ThemeToggle current={theme} tone="light" align="right" />
 
       {/* Language switcher */}
       <LanguageSwitcher tone="light" align="right" />

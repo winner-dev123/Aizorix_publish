@@ -56,6 +56,8 @@ export const fr: Dictionary = {
     navDemo: "Démo CRM",
     signIn: "Se connecter",
     getStarted: "Commencer",
+
+    heroBadge: "Nouveau · ROI prévu avant l'envoi",
     heroTitleA: "Une plateforme",
     heroTitleB: "pour chaque entreprise.",
     heroHighlight: "Résultats",
@@ -67,5 +69,111 @@ export const fr: Dictionary = {
     noCard: "Sans carte pour commencer",
     onboarding10: "Intégration en 10 minutes",
     supportEs: "Support dans votre langue",
+    socialProof: "4,9 sur 5 · +250 entreprises automatisées avec Aizorix",
+    statusOperational: "Opérationnel · 99,97 % de disponibilité",
+    activeAutomations: "Automatisations actives",
+  },
+  onboarding: {
+    eyebrow: "Intégration intelligente",
+    saveAndExit: "Enregistrer et quitter",
+    footerGdpr: "RGPD",
+    footerSecure: "Sécurisé",
+    footerCloud: "100 % cloud",
+
+    back: "Retour",
+    continue: "Continuer",
+    finish: "Terminer",
+    stepOf: "Étape {current} sur {total}",
+
+    ai: {
+      uploadTitle: "Téléversez des documents contenant les infos de votre entreprise",
+      uploadHint:
+        "Tarifs, FAQ, descriptions de services, manuels… Nous les utiliserons pour entraîner votre IA.",
+      dropzoneTitle: "Déposez vos fichiers ici",
+      dropzoneSub: "PDF, DOCX, TXT, MD, CSV · max. 10 Mo chacun",
+      dropzoneButton: "Sélectionner des fichiers",
+      uploadedHeader: "Documents téléversés",
+      empty: "Vous n'avez encore téléversé aucun document.",
+      remove: "Supprimer",
+      retry: "Réessayer",
+      statusReady: "Traité",
+      statusPending: "En attente · collez le contenu ci-dessous",
+      statusError: "Erreur",
+      errTooLarge: "Le fichier dépasse 10 Mo.",
+      errType: "Format non pris en charge.",
+      errRead: "Impossible de lire le fichier.",
+      pendingNotice:
+        "Les fichiers binaires (PDF, DOCX) sont acceptés mais leur contenu n'est pas encore extrait automatiquement. Collez le texte clé dans le champ de notes pour que votre IA puisse l'apprendre.",
+      words: "{n} mots",
+      notesLabel: "Notes supplémentaires pour votre IA",
+      notesPlaceholder:
+        "Collez ici toute information supplémentaire que votre IA doit connaître : politiques, promotions, FAQ, annulations…",
+      notesHint:
+        "Votre IA retiendra ce texte et l'utilisera dans chaque conversation.",
+      toneLabel: "Ton de l'IA",
+      toneProfessional: "Professionnel",
+      toneProfessionalDesc: "Poli, direct, technique.",
+      toneFriendly: "Chaleureux",
+      toneFriendlyDesc: "Chaleureux, empathique, conversationnel.",
+      toneCasual: "Décontracté",
+      toneCasualDesc: "Décontracté, jeune, informel.",
+      introLabel: "Message de bienvenue",
+      introHint:
+        "Premier message envoyé par l'IA lorsqu'un client commence une conversation.",
+      askEmailTitle: "Demander l'e-mail des nouveaux clients",
+      askEmailDesc:
+        "L'IA demandera le nom, le téléphone et l'e-mail au premier contact.",
+      pushBookingTitle: "Toujours pousser vers la réservation",
+      pushBookingDesc:
+        "L'IA proposera des créneaux réels et conclura la réservation naturellement.",
+      learnTitle: "Votre IA apprendra sur",
+      learnServices: "Vos services et tarifs",
+      learnHours: "Vos horaires et disponibilités",
+      learnDocs: "Les documents que vous téléversez à cette étape",
+      learnNotes: "Les notes supplémentaires que vous écrivez",
+      tip: "Astuce",
+      tipBody:
+        "Plus vous téléversez d'informations, mieux votre IA répondra. Commencez par votre grille tarifaire et vos services phares.",
+      autoTrainNotice:
+        "Votre IA sera entraînée automatiquement avec vos services, horaires et tarifs. Vous pourrez ajuster le comportement depuis Paramètres › IA dans le CRM.",
+    },
+
+    steps: {
+      negocio: {
+        label: "Votre entreprise",
+        short: "Votre entreprise",
+        highlight: "entreprise",
+        description:
+          "Dites-nous qui vous êtes : nom, secteur, localisation, contact, sites et employés. Nous configurerons votre plateforme avec des modules spécifiques à votre activité.",
+      },
+      serviciosYAgenda: {
+        label: "Services et agenda",
+        short: "Services et agenda",
+        highlight: "agenda",
+        description:
+          "Ajoutez vos traitements, prix et durées, puis configurez vos horaires d'ouverture (services coupés inclus).",
+      },
+      canales: {
+        label: "Connectez vos canaux",
+        short: "Connectez vos canaux",
+        highlight: "canaux",
+        description:
+          "Connectez les canaux que vous utiliserez pour communiquer avec vos clients : WhatsApp, Instagram, Facebook, formulaires web et Google Calendar.",
+      },
+      ia: {
+        label: "Entraînez votre IA",
+        short: "Entraînez votre IA",
+        highlight: "votre IA",
+        description:
+          "Téléversez des documents et configurez le comportement de votre assistant IA — ton, langue et instructions spécifiques.",
+      },
+      activar: {
+        label: "Activez votre système",
+        short: "Activez votre système",
+        highlight: "votre système",
+        description:
+          "Vérifiez votre configuration et activez le système. Vous y êtes presque !",
+      },
+    },
   },
 };

@@ -4,6 +4,8 @@ import { signIn, auth } from "@/auth";
 import { Sparkles, Mail, ShieldCheck, CheckCircle2, ArrowRight } from "lucide-react";
 import { getServerT } from "@/i18n/server";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { getTheme } from "@/lib/theme";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +17,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
 
   const { error, sent } = await searchParams;
   const { t } = await getServerT();
+  const theme = await getTheme();
 
   async function action(formData: FormData) {
     "use server";
@@ -47,8 +50,9 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
         className="pointer-events-none absolute inset-0 grid-bg opacity-30 [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_70%)]"
       />
 
-      {/* Language switcher — top-right corner */}
-      <div className="absolute right-5 top-5 z-10">
+      {/* Top-right controls — theme + language */}
+      <div className="absolute right-5 top-5 z-10 flex items-center gap-2">
+        <ThemeToggle current={theme} tone="light" align="right" />
         <LanguageSwitcher tone="light" align="right" />
       </div>
 

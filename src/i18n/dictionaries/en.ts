@@ -56,6 +56,8 @@ export const en: Dictionary = {
     navDemo: "CRM Demo",
     signIn: "Sign in",
     getStarted: "Get started",
+
+    heroBadge: "New · ROI forecast before you send",
     heroTitleA: "One platform",
     heroTitleB: "for every business.",
     heroHighlight: "Results",
@@ -67,5 +69,111 @@ export const en: Dictionary = {
     noCard: "No card to start",
     onboarding10: "Onboarding in 10 minutes",
     supportEs: "Support in your language",
+    socialProof: "4.9 out of 5 · 250+ businesses automated with Aizorix",
+    statusOperational: "Operational · 99.97% uptime",
+    activeAutomations: "Active automations",
+  },
+  onboarding: {
+    eyebrow: "Smart onboarding",
+    saveAndExit: "Save and exit",
+    footerGdpr: "GDPR",
+    footerSecure: "Secure",
+    footerCloud: "100% cloud",
+
+    back: "Back",
+    continue: "Continue",
+    finish: "Finish",
+    stepOf: "Step {current} of {total}",
+
+    ai: {
+      uploadTitle: "Upload documents with your business information",
+      uploadHint:
+        "Price lists, FAQs, service descriptions, manuals… We'll use them to train your AI.",
+      dropzoneTitle: "Drag your files here",
+      dropzoneSub: "PDF, DOCX, TXT, MD, CSV · max. 10 MB each",
+      dropzoneButton: "Select files",
+      uploadedHeader: "Uploaded documents",
+      empty: "You haven't uploaded any documents yet.",
+      remove: "Remove",
+      retry: "Retry",
+      statusReady: "Processed",
+      statusPending: "Pending · paste the content below",
+      statusError: "Error",
+      errTooLarge: "File exceeds 10 MB.",
+      errType: "Unsupported format.",
+      errRead: "Couldn't read the file.",
+      pendingNotice:
+        "Binary files (PDF, DOCX) are accepted but their content isn't extracted automatically yet. Paste the key text in the notes field so your AI can learn it.",
+      words: "{n} words",
+      notesLabel: "Additional notes for your AI",
+      notesPlaceholder:
+        "Paste any extra information your AI should know: policies, promotions, FAQs, cancellations…",
+      notesHint:
+        "Your AI will remember this text and use it in every conversation.",
+      toneLabel: "AI tone",
+      toneProfessional: "Professional",
+      toneProfessionalDesc: "Polite, direct, technical.",
+      toneFriendly: "Friendly",
+      toneFriendlyDesc: "Warm, empathetic, conversational.",
+      toneCasual: "Casual",
+      toneCasualDesc: "Relaxed, youthful, informal.",
+      introLabel: "Welcome message",
+      introHint:
+        "First message the AI sends when a customer starts a conversation.",
+      askEmailTitle: "Ask new customers for their email",
+      askEmailDesc:
+        "The AI will ask for name, phone and email on first contact.",
+      pushBookingTitle: "Always push toward booking",
+      pushBookingDesc:
+        "The AI will propose real slots and close the booking naturally.",
+      learnTitle: "Your AI will learn about",
+      learnServices: "Your services and prices",
+      learnHours: "Your hours and availability",
+      learnDocs: "The documents you upload in this step",
+      learnNotes: "The additional notes you write",
+      tip: "Tip",
+      tipBody:
+        "The more information you upload, the better your AI will respond. Start with your price list and best-selling services.",
+      autoTrainNotice:
+        "Your AI will be trained automatically with your services, hours and prices. You can fine-tune behavior under Settings › AI in the CRM.",
+    },
+
+    steps: {
+      negocio: {
+        label: "Your business",
+        short: "Your business",
+        highlight: "business",
+        description:
+          "Tell us who you are: name, sector, location, contact, locations and employees. We'll configure your platform with modules specific to your activity.",
+      },
+      serviciosYAgenda: {
+        label: "Services and calendar",
+        short: "Services & calendar",
+        highlight: "calendar",
+        description:
+          "Add your treatments, prices, durations and configure your business hours (including split shifts).",
+      },
+      canales: {
+        label: "Connect channels",
+        short: "Connect channels",
+        highlight: "channels",
+        description:
+          "Connect the channels you'll use to talk to your customers: WhatsApp, Instagram, Facebook, web forms and Google Calendar.",
+      },
+      ia: {
+        label: "Train your AI",
+        short: "Train your AI",
+        highlight: "your AI",
+        description:
+          "Upload documents and configure how your AI assistant should behave — tone, language and specific instructions.",
+      },
+      activar: {
+        label: "Activate your system",
+        short: "Activate your system",
+        highlight: "your system",
+        description:
+          "Review your configuration and activate the system. You're almost ready!",
+      },
+    },
   },
 };

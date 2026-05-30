@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Tailwind v4 — enable class-style `dark:` modifiers driven by the
+   `data-theme="dark"` attribute on <html>. Toggling that attribute (or
+   any ancestor) instantly switches every dark-prefixed utility AND
+   re-resolves the CSS variable overrides defined below. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme inline {
   /* ────────────────────────────────────────────
      Aizorix — Violet/Purple Design System
@@ -142,6 +148,160 @@
 }
 
 /* ──────────────────────────────────────────────
+   Dark theme — variable overrides
+   ────────────────────────────────────────────── */
+/*  The whole design system is built on CSS variables, so flipping the
+    palette here cascades to every component (badges, cards, inputs,
+    sidebars, modals, the lot) without touching a single .tsx. We invert
+    the ink scale (ink-900 becomes light), darken every surface to
+    navy/indigo, and tune the glass tokens for dark backgrounds. Brand
+    violets stay as-is because they read well on both themes. */
+
+[data-theme="dark"] {
+  /* Surfaces — DEEP EGGPLANT PURPLE matching the reference SaaS mock.
+     surface-0 is the page bg (darkest); each step adds lightness so
+     cards/popovers/inputs still read with hierarchy on top. */
+  --color-surface-0: #0e0822;
+  --color-surface-1: #1a1438;
+  --color-surface-2: #241c4f;
+  --color-surface-3: #2e2462;
+
+  /* Ink — inverted so dark-text classes still mean "main text" but render
+     light on dark. ink-900 (was darkest) is now near-white; ink-50 (was
+     lightest) is now near-dark, tinted with the same purple family for
+     coherence with the new surfaces. */
+  --color-ink-50: #1d1240;
+  --color-ink-100: #2a1f50;
+  --color-ink-200: #3a2d65;
+  --color-ink-300: #524385;
+  --color-ink-400: #7d75aa;
+  --color-ink-500: #a8a3d0;
+  --color-ink-600: #c4c0e8;
+  --color-ink-700: #ddd8f5;
+  --color-ink-800: #ece8ff;
+  --color-ink-900: #f8fafc;
+
+  /* Aliases shadcn-style components reference */
+  --color-background: #0e0822;
+  --color-foreground: #f8fafc;
+  --color-muted: #1a1438;
+  --color-muted-foreground: #a8a3d0;
+  /* Bumped from #26204a → #3a3168 so card edges are clearly visible
+     against the deep eggplant page bg, matching the reference mock. */
+  --color-border: #3a3168;
+  --color-input: #1a1438;
+
+  /* Glass tokens — much lower opacity so blur reads on dark */
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-bg-strong: rgba(255, 255, 255, 0.07);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-border-violet: rgba(167, 139, 250, 0.22);
+
+  /* Shadows — drop opacity (less contrast on dark) and warm them with violet */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm:
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.25);
+  --shadow-md:
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.25);
+  --shadow-lg:
+    0 18px 44px -16px rgba(0, 0, 0, 0.55),
+    0 6px 18px -6px rgba(0, 0, 0, 0.35);
+  --shadow-xl:
+    0 30px 80px -24px rgba(0, 0, 0, 0.65),
+    0 14px 32px -14px rgba(0, 0, 0, 0.4);
+}
+
+/* ──────────────────────────────────────────────
+   Dark-mode "no white anywhere" overrides
+   ──────────────────────────────────────────────
+   The user wants zero pure-white anywhere when dark mode is on. Each
+   white-using Tailwind utility family is remapped to a value that
+   matches the dark eggplant palette:
+
+   ┌──────────────┬──────────────────────────────────────────────────┐
+   │ utility      │ dark-mode value                                  │
+   ├──────────────┼──────────────────────────────────────────────────┤
+   │ bg-white*    │ var(--color-surface-1) — #1a1438, one notch      │
+   │              │ above the page bg #0e0822                        │
+   │ hover:bg-w*  │ var(--color-surface-2) — #241c4f, the next notch │
+   │ text-white*  │ tinted off-white #ece8ff with opacity preserved  │
+   │              │ via color-mix per variant                        │
+   │ border-w*    │ soft violet #a78bfa with low opacity              │
+   │ ring-white*  │ same soft violet                                  │
+   └──────────────┴──────────────────────────────────────────────────┘
+
+   Faint glass tints (bg-white at /[0.02]…/20) are *intentional* "barely
+   lifted" surfaces and already match "slightly lighter than background",
+   so they fall through unchanged. */
+
+/* --- backgrounds --- */
+[data-theme="dark"] :is(
+  .bg-white,
+  .bg-white\/25,
+  .bg-white\/30,
+  .bg-white\/40,
+  .bg-white\/50,
+  .bg-white\/60,
+  .bg-white\/65,
+  .bg-white\/70,
+  .bg-white\/75,
+  .bg-white\/80,
+  .bg-white\/85,
+  .bg-white\/90,
+  .bg-white\/95
+) {
+  background-color: var(--color-surface-1) !important;
+}
+[data-theme="dark"] :is(
+  .hover\:bg-white:hover,
+  .hover\:bg-white\/80:hover,
+  .hover\:bg-white\/90:hover
+) {
+  background-color: var(--color-surface-2) !important;
+}
+
+/* --- text --- */
+/* Solid text-white → tinted off-white that reads as part of the palette. */
+[data-theme="dark"] .text-white { color: #ece8ff !important; }
+/* Opacity variants — keep the hierarchy but swap the base colour. */
+[data-theme="dark"] .text-white\/35 { color: rgb(236 232 255 / 35%) !important; }
+[data-theme="dark"] .text-white\/40 { color: rgb(236 232 255 / 40%) !important; }
+[data-theme="dark"] .text-white\/45 { color: rgb(236 232 255 / 45%) !important; }
+[data-theme="dark"] .text-white\/50 { color: rgb(236 232 255 / 50%) !important; }
+[data-theme="dark"] .text-white\/55 { color: rgb(236 232 255 / 55%) !important; }
+[data-theme="dark"] .text-white\/60 { color: rgb(236 232 255 / 60%) !important; }
+[data-theme="dark"] .text-white\/65 { color: rgb(236 232 255 / 65%) !important; }
+[data-theme="dark"] .text-white\/70 { color: rgb(236 232 255 / 70%) !important; }
+[data-theme="dark"] .text-white\/75 { color: rgb(236 232 255 / 75%) !important; }
+[data-theme="dark"] .text-white\/80 { color: rgb(236 232 255 / 80%) !important; }
+[data-theme="dark"] .text-white\/85 { color: rgb(236 232 255 / 85%) !important; }
+[data-theme="dark"] .text-white\/90 { color: rgb(236 232 255 / 90%) !important; }
+
+/* --- borders ---
+   Soft violet hairlines that read as one notch lighter than the deep
+   eggplant page bg. Opacities are tuned so card edges are clearly
+   visible without the harsh "white-on-dark" look. */
+[data-theme="dark"] .border-white { border-color: rgb(196 181 253 / 30%) !important; }
+[data-theme="dark"] .border-white\/5 { border-color: rgb(196 181 253 / 12%) !important; }
+[data-theme="dark"] .border-white\/10 { border-color: rgb(196 181 253 / 18%) !important; }
+[data-theme="dark"] .border-white\/15 { border-color: rgb(196 181 253 / 22%) !important; }
+[data-theme="dark"] .border-white\/20 { border-color: rgb(196 181 253 / 28%) !important; }
+[data-theme="dark"] .border-white\/30 { border-color: rgb(196 181 253 / 35%) !important; }
+[data-theme="dark"] .border-white\/40 { border-color: rgb(196 181 253 / 42%) !important; }
+[data-theme="dark"] .border-white\/50 { border-color: rgb(196 181 253 / 50%) !important; }
+[data-theme="dark"] .border-white\/60 { border-color: rgb(196 181 253 / 60%) !important; }
+[data-theme="dark"] .border-white\/70 { border-color: rgb(196 181 253 / 70%) !important; }
+[data-theme="dark"] .border-white\/80 { border-color: rgb(196 181 253 / 80%) !important; }
+
+/* --- rings --- */
+[data-theme="dark"] .ring-white { --tw-ring-color: rgb(167 139 250 / 22%) !important; }
+[data-theme="dark"] .ring-white\/10 { --tw-ring-color: rgb(167 139 250 / 10%) !important; }
+[data-theme="dark"] .ring-white\/20 { --tw-ring-color: rgb(167 139 250 / 20%) !important; }
+[data-theme="dark"] .ring-white\/25 { --tw-ring-color: rgb(167 139 250 / 25%) !important; }
+
+/* ──────────────────────────────────────────────
    Base
    ────────────────────────────────────────────── */
 
@@ -238,7 +398,7 @@ body {
   color: transparent;
 }
 
-/* Multi-color aurora background — violet/lavender/sky/rose */
+/* Multi-color aurora background — violet/lavender/sky/rose (light mode). */
 .aurora-bg {
   background:
     radial-gradient(55% 45% at 12% 18%, rgba(196, 181, 253, 0.55) 0%, transparent 60%),
@@ -276,6 +436,20 @@ body {
     radial-gradient(60% 60% at 0% 0%, rgba(214, 205, 255, 0.65) 0%, transparent 60%),
     radial-gradient(60% 60% at 100% 100%, rgba(196, 181, 253, 0.55) 0%, transparent 60%),
     linear-gradient(135deg, #f5f3ff 0%, #ffffff 50%, #f5f3ff 100%);
+}
+
+/* Dark-mode: kill the aurora gradients entirely so sections inherit the
+   deep eggplant page bg. Each `aurora-*` carries a `background:` shorthand
+   that would otherwise outrun a `dark:bg-…` utility (shorthand vs. longhand
+   in the same cascade tier), so we override the shorthand explicitly here. */
+[data-theme="dark"] :is(
+  .aurora-bg,
+  .aurora-soft,
+  .aurora-coral,
+  .aurora-mint,
+  .aurora-lavender
+) {
+  background: var(--color-background);
 }
 
 /* Grid background pattern (light) */

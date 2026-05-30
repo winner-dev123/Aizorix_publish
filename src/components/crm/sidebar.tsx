@@ -190,7 +190,7 @@ export function CrmSidebar({
           // Dark navy shell — mirrors the Aizorix AI landing mock: deep
           // ink background, subtle violet bleed at the top, white nav text.
           "h-screen w-64 shrink-0 flex-col border-r border-white/5 text-white",
-          "bg-gradient-to-b from-[#0f0d1a] via-[#11102a] to-[#0a0916]",
+          "bg-gradient-to-b from-[#0c0822] via-[#150e36] to-[#080518]",
           // Mobile: fixed overlay, slides in from left.
           "fixed inset-y-0 left-0 z-50 flex transition-transform duration-200 ease-out",
           open ? "translate-x-0 shadow-2xl" : "-translate-x-full",

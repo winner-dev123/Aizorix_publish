@@ -375,7 +375,7 @@ export function AiDemo({
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
       {/* Chat */}
       <div className="flex h-[calc(100vh-10rem)] flex-col overflow-hidden rounded-3xl border border-[color:var(--color-ink-100)] bg-white shadow-[var(--shadow-md)]">
-        <header className="flex items-center justify-between gap-3 border-b border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-4">
+        <header className="flex items-center justify-between gap-3 border-b border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-4 dark:bg-none dark:bg-[color:var(--color-surface-2)] dark:border-white/10">
           <div className="flex items-center gap-3">
             <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-[0_8px_22px_-10px_rgba(16,185,129,0.6)]">
               <Bot className="h-5 w-5" />
@@ -476,7 +476,7 @@ export function AiDemo({
       {/* Sidebar */}
       <div className="space-y-4">
         <div className="overflow-hidden rounded-3xl border border-[color:var(--color-ink-100)] bg-white shadow-[var(--shadow-sm)]">
-          <div className="flex items-center justify-between gap-2 border-b border-[color:var(--color-ink-100)] bg-gradient-to-br from-[color:var(--color-brand-50)] to-white px-5 py-3.5">
+          <div className="flex items-center justify-between gap-2 border-b border-[color:var(--color-ink-100)] bg-gradient-to-br from-[color:var(--color-brand-50)] to-white px-5 py-3.5 dark:bg-none dark:bg-[color:var(--color-surface-2)] dark:border-white/10">
             <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-ink-700)]">
               <Database className="h-3.5 w-3.5" /> Datos capturados
             </p>
@@ -499,7 +499,7 @@ export function AiDemo({
         </div>
 
         {appointmentCreated && (
-          <div className="overflow-hidden rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-[var(--shadow-sm)]">
+          <div className="overflow-hidden rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-[var(--shadow-sm)] dark:bg-none dark:bg-emerald-500/10 dark:border-emerald-400/30">
             <Badge variant="success">
               <Calendar className="h-3 w-3" /> Cita creada
             </Badge>
@@ -514,7 +514,7 @@ export function AiDemo({
           </div>
         )}
 
-        <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#f5f3ff] via-[#e6f4f1] to-[#effdf6] p-5 shadow-[var(--shadow-sm)]">
+        <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#f5f3ff] via-[#e6f4f1] to-[#effdf6] p-5 shadow-[var(--shadow-sm)] dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10">
           <span
             aria-hidden
             className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-60 blur-2xl"

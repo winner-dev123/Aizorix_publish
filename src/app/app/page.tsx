@@ -245,7 +245,7 @@ export default async function CrmDashboardPage() {
         </Card>
       </div>
 
-      <Card className="relative overflow-hidden border-white/70 bg-gradient-to-br from-[#effdf6] via-white to-[#eff7ff]">
+      <Card className="relative overflow-hidden border-white/70 bg-gradient-to-br from-[#effdf6] via-white to-[#eff7ff] dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10">
         <span
           aria-hidden
           className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full opacity-50 blur-3xl"
@@ -382,7 +382,7 @@ function Mini({ label, value, tint }: { label: string; value: string; tint: keyo
   const t = TINTS[tint];
   return (
     <div
-      className={`rounded-2xl border border-white/70 bg-gradient-to-br ${t.card} p-4 shadow-[var(--shadow-xs)] ring-1`}
+      className={`rounded-2xl border border-white/70 bg-gradient-to-br ${t.card} p-4 shadow-[var(--shadow-xs)] ring-1 dark:bg-none dark:bg-[color:var(--color-surface-2)] dark:border-white/10 dark:ring-white/10`}
     >
       <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
         {label}

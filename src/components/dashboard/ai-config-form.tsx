@@ -62,8 +62,8 @@ export function AiConfigForm({ defaults }: { defaults: AiConfigDefaults }) {
                 key={opt.id}
                 className={`cursor-pointer rounded-2xl border p-4 transition ${
                   active
-                    ? "border-[color:var(--color-brand-300)] bg-[color:var(--color-brand-50)]/70 ring-2 ring-[color:var(--color-brand-200)]/60"
-                    : "border-[color:var(--color-ink-100)] bg-white hover:border-[color:var(--color-ink-200)]"
+                    ? "border-[color:var(--color-brand-300)] bg-[color:var(--color-brand-50)]/70 ring-2 ring-[color:var(--color-brand-200)]/60 dark:bg-[color:var(--color-brand-500)]/15 dark:border-[color:var(--color-brand-400)]/50 dark:ring-[color:var(--color-brand-400)]/25"
+                    : "border-[color:var(--color-ink-100)] bg-white hover:border-[color:var(--color-ink-200)] dark:border-white/10 dark:bg-[color:var(--color-surface-1)] dark:hover:border-white/20"
                 }`}
               >
                 <input

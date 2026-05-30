@@ -88,7 +88,7 @@ export default async function ConversationsPage({
               className={cn(
                 "shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition",
                 effectiveFilter === "all"
-                  ? "bg-[color:var(--color-ink-900)] text-white"
+                  ? "bg-[color:var(--color-ink-900)] text-white dark:bg-gradient-to-br dark:from-[#8b5cf6] dark:to-[#6d28d9] dark:text-white"
                   : "bg-[color:var(--color-ink-50)] text-[color:var(--color-ink-600)] hover:bg-[color:var(--color-ink-100)]",
               )}
             >
@@ -99,7 +99,7 @@ export default async function ConversationsPage({
               className={cn(
                 "shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition",
                 effectiveFilter === "needs-human"
-                  ? "bg-[color:var(--color-ink-900)] text-white"
+                  ? "bg-[color:var(--color-ink-900)] text-white dark:bg-gradient-to-br dark:from-[#8b5cf6] dark:to-[#6d28d9] dark:text-white"
                   : "bg-[color:var(--color-ink-50)] text-[color:var(--color-ink-600)] hover:bg-[color:var(--color-ink-100)]",
               )}
             >
@@ -145,7 +145,7 @@ export default async function ConversationsPage({
                   className={cn(
                     "relative flex w-full items-start gap-3 border-b border-[color:var(--color-ink-100)] p-3.5 text-left transition",
                     isActive
-                      ? "bg-gradient-to-r from-[color:var(--color-brand-50)]/60 to-transparent"
+                      ? "bg-gradient-to-r from-[color:var(--color-brand-50)]/60 to-transparent dark:bg-none dark:bg-[color:var(--color-brand-500)]/12"
                       : "hover:bg-[color:var(--color-surface-2)]",
                   )}
                 >
@@ -210,7 +210,7 @@ function Thread({ conv, tz }: { conv: ConversationWithDetails; tz: string }) {
 
   return (
     <>
-      <header className="flex items-center justify-between gap-3 border-b border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-4">
+      <header className="flex items-center justify-between gap-3 border-b border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-4 dark:bg-none dark:bg-[color:var(--color-surface-2)] dark:border-white/10">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#c4b5fd] to-[#7c3aed] text-xs font-black text-white shadow-[0_6px_14px_-6px_rgba(124,108,245,0.45)]">
             {initials || "?"}

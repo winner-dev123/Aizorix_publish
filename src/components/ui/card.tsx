@@ -19,14 +19,16 @@ const cardVariants = cva(
     variants: {
       variant: {
         default:
-          "border border-[color:var(--color-ink-100)] bg-white shadow-[var(--shadow-sm)]",
+          // Light: white card on muted canvas. Dark: deep-eggplant surface-1
+          // with a faint violet border that reads on the deep purple bg.
+          "border border-[color:var(--color-ink-100)] bg-white shadow-[var(--shadow-sm)] dark:border-white/10 dark:bg-[color:var(--color-surface-1)]",
         glass: "glass-card",
         dark:
-          "border border-white/10 bg-gradient-to-br from-[#11102a] to-[#0a0916] text-white shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55)]",
+          "border border-white/10 bg-gradient-to-br from-[#1a1438] to-[#0e0822] text-white shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55)]",
         violet:
-          "border border-[color:var(--color-brand-200)]/60 bg-gradient-to-br from-[color:var(--color-brand-50)] via-white to-[color:var(--color-brand-50)]/60 shadow-[var(--shadow-sm)]",
+          "border border-[color:var(--color-brand-200)]/60 bg-gradient-to-br from-[color:var(--color-brand-50)] via-white to-[color:var(--color-brand-50)]/60 shadow-[var(--shadow-sm)] dark:border-[color:var(--color-brand-400)]/30 dark:from-[color:var(--color-surface-1)] dark:via-[color:var(--color-surface-1)] dark:to-[color:var(--color-surface-2)]",
         outline:
-          "border border-[color:var(--color-ink-200)] bg-transparent",
+          "border border-[color:var(--color-ink-200)] bg-transparent dark:border-white/15",
       },
       interactive: {
         true: "card-violet-glow cursor-pointer",

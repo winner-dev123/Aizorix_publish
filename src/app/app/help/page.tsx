@@ -30,7 +30,7 @@ export default async function HelpPage() {
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-3xl border border-[color:var(--color-brand-200)]/60 bg-gradient-to-br from-[color:var(--color-brand-50)] to-white p-7 shadow-[var(--shadow-sm)]">
+      <div className="relative overflow-hidden rounded-3xl border border-[color:var(--color-brand-200)]/60 bg-gradient-to-br from-[color:var(--color-brand-50)] to-white p-7 shadow-[var(--shadow-sm)] dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-[color:var(--color-brand-400)]/30">
         <span
           aria-hidden
           className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-50 blur-3xl"
@@ -260,7 +260,7 @@ export default async function HelpPage() {
       </section>
 
       <section id="mas" className="scroll-mt-24">
-        <Card className="bg-gradient-to-br from-[color:var(--color-brand-50)] to-white">
+        <Card className="bg-gradient-to-br from-[color:var(--color-brand-50)] to-white dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10">
           <CardContent className="flex flex-col gap-3 p-6 md:flex-row md:items-center md:justify-between">
             <div>
               <h3 className="text-base font-bold text-[color:var(--color-ink-900)]">
@@ -275,7 +275,7 @@ export default async function HelpPage() {
             <div className="flex flex-wrap gap-2">
               <a
                 href="mailto:soporte@aizorix.dev"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[color:var(--color-ink-900)] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--color-ink-800)]"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[color:var(--color-ink-900)] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--color-ink-800)] dark:bg-gradient-to-br dark:from-[#8b5cf6] dark:to-[#6d28d9] dark:hover:from-[#7c3aed] dark:hover:to-[#5b21b6]"
               >
                 <LifeBuoy className="h-4 w-4" /> Contactar soporte
               </a>

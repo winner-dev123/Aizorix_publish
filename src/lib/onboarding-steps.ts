@@ -1,123 +1,73 @@
 export interface OnboardingStep {
   num: number;
   slug: string;
+  /** Full title for the step header (e.g. "Servicios y agenda"). */
   label: string;
+  /** Short label for the progress timeline (e.g. "Servicios y agenda"). */
   short: string;
+  /** Word(s) inside `label` to render with the violet gradient highlight. */
+  highlight?: string;
   description: string;
 }
 
+/**
+ * Onboarding flow — 5 steps, matching the Aizorix AI reference mocks:
+ *
+ *   1. Tu negocio          ─ business profile (name, sector, location, …)
+ *   2. Servicios y agenda  ─ treatments + business hours
+ *   3. Conecta canales     ─ WhatsApp, Instagram, Facebook, Forms, GCal, web
+ *   4. Entrena tu IA       ─ document upload + tone/instructions
+ *   5. Activa tu sistema   ─ review + "Activar mi sistema" CTA
+ *
+ * Legacy step components (sector, sedes, empleados, modulos, leads,
+ * estados, automatizaciones, crm) are kept on disk for reuse but are no
+ * longer part of the active flow.
+ */
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     num: 1,
-    slug: "sector",
-    label: "Selecciona tu sector",
-    short: "Sector",
+    slug: "negocio",
+    label: "Tu negocio",
+    short: "Tu negocio",
+    highlight: "negocio",
     description:
-      "Elige el sector que mejor se adapte a tu negocio. Esto nos permitirá configurar tu plataforma con módulos, automatizaciones y flujos específicos para tu actividad.",
+      "Cuéntanos quién eres: nombre, sector, ubicación, contacto, sedes y empleados. Configuraremos tu plataforma con módulos específicos para tu actividad.",
   },
   {
     num: 2,
-    slug: "negocio",
-    label: "Datos del negocio",
-    short: "Negocio",
+    slug: "servicios-y-agenda",
+    label: "Servicios y agenda",
+    short: "Servicios y agenda",
+    highlight: "agenda",
     description:
-      "Configura el nombre comercial, dirección, web, redes sociales y canales de contacto.",
+      "Añade tus tratamientos, precios, duración y configura tus horarios de atención (incluidos turnos partidos).",
   },
   {
     num: 3,
-    slug: "sedes",
-    label: "Configurar sedes",
-    short: "Sedes",
+    slug: "canales",
+    label: "Conecta canales",
+    short: "Conecta canales",
+    highlight: "canales",
     description:
-      "Añade cada clínica o sede con su dirección, teléfono y horarios reales de apertura.",
+      "Conecta los canales que usarás para comunicarte con tus clientes: WhatsApp, Instagram, Facebook, formularios web y Google Calendar.",
   },
   {
     num: 4,
-    slug: "empleados",
-    label: "Añadir empleados",
-    short: "Empleados",
+    slug: "ia",
+    label: "Entrena tu IA",
+    short: "Entrena tu IA",
+    highlight: "tu IA",
     description:
-      "Configura el personal, especialidades, horarios y servicios que puede realizar cada uno.",
+      "Sube documentos y configura cómo debe comportarse tu asistente de IA — tono, idioma e instrucciones específicas.",
   },
   {
     num: 5,
-    slug: "servicios",
-    label: "Servicios y precios",
-    short: "Servicios",
+    slug: "activar",
+    label: "Activa tu sistema",
+    short: "Activa tu sistema",
+    highlight: "tu sistema",
     description:
-      "Define tratamientos, duración, precios, condiciones y preguntas frecuentes.",
-  },
-  {
-    num: 6,
-    slug: "modulos",
-    label: "Elige tus módulos",
-    short: "Módulos",
-    description:
-      "Activa solo las funcionalidades que necesitas. Podrás añadir más módulos cuando quieras.",
-  },
-  {
-    num: 7,
-    slug: "canales",
-    label: "Conecta tus canales",
-    short: "Canales",
-    description:
-      "Conecta WhatsApp Business, Instagram, Facebook, formularios web y Google Calendar.",
-  },
-  {
-    num: 8,
-    slug: "agenda",
-    label: "Configurar agenda",
-    short: "Agenda",
-    description:
-      "Automatización de citas, control de horarios, bloqueos, confirmaciones y recordatorios.",
-  },
-  {
-    num: 9,
-    slug: "ia",
-    label: "Entrenar la IA",
-    short: "IA",
-    description:
-      "Información del negocio, tono de comunicación, servicios, promociones y límites de respuesta.",
-  },
-  {
-    num: 10,
-    slug: "leads",
-    label: "Flujo automático de leads",
-    short: "Leads",
-    description:
-      "Automatización de recepción, clasificación, seguimiento y cierre de clientes potenciales.",
-  },
-  {
-    num: 11,
-    slug: "estados",
-    label: "Estados del cliente",
-    short: "Estados",
-    description:
-      "Organización de leads según su estado dentro del proceso comercial.",
-  },
-  {
-    num: 12,
-    slug: "crm",
-    label: "Tu CRM visual",
-    short: "CRM",
-    description:
-      "Panel centralizado para gestionar clientes, conversaciones, citas, campañas y métricas.",
-  },
-  {
-    num: 13,
-    slug: "automatizaciones",
-    label: "Automatizaciones",
-    short: "Automatiz.",
-    description:
-      "Recordatorios, seguimientos, recuperación de clientes y campañas automáticas.",
-  },
-  {
-    num: 14,
-    slug: "listo",
-    label: "¡Todo listo!",
-    short: "Listo",
-    description:
-      "Activación completa del ecosistema IA + CRM + Agenda + Automatizaciones.",
+      "Revisa tu configuración y activa el sistema. ¡Ya casi estás listo!",
   },
 ];
 
@@ -127,4 +77,27 @@ export function getStep(num: number) {
 
 export function getStepBySlug(slug: string) {
   return ONBOARDING_STEPS.find((s) => s.slug === slug);
+}
+
+/**
+ * Map a step slug to the matching key inside `dictionary.onboarding.steps`.
+ * Kept as a separate map so the i18n dictionary can use camelCase keys while
+ * the URL slugs stay kebab-case / shorter for nice routes.
+ *
+ * Returns `null` for slugs that are not in the active flow (e.g. legacy
+ * `crm` / `automatizaciones` step components that still exist on disk),
+ * letting callers fall back to the hardcoded step record.
+ */
+const STEP_DICT_KEYS = {
+  negocio: "negocio",
+  "servicios-y-agenda": "serviciosYAgenda",
+  canales: "canales",
+  ia: "ia",
+  activar: "activar",
+} as const satisfies Record<string, string>;
+
+export type StepDictKey = (typeof STEP_DICT_KEYS)[keyof typeof STEP_DICT_KEYS];
+
+export function getStepDictKey(slug: string): StepDictKey | null {
+  return (STEP_DICT_KEYS as Record<string, StepDictKey>)[slug] ?? null;
 }

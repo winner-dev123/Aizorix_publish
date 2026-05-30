@@ -52,7 +52,7 @@ export default async function FacturacionSettingsPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Current plan summary */}
-          <div className="relative overflow-hidden rounded-3xl border border-[color:var(--color-brand-200)]/60 bg-gradient-to-br from-[color:var(--color-brand-50)] to-white p-6">
+          <div className="relative overflow-hidden rounded-3xl border border-[color:var(--color-brand-200)]/60 bg-gradient-to-br from-[color:var(--color-brand-50)] to-white p-6 dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-[color:var(--color-brand-400)]/30">
             <span
               aria-hidden
               className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-50 blur-3xl"

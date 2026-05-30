@@ -139,8 +139,8 @@ export function CampaignsView({ audience }: { audience: CampaignAudience }) {
                   className={cn(
                     "group relative flex flex-col overflow-hidden rounded-2xl border p-4 text-left transition-all",
                     active
-                      ? "border-[color:var(--color-brand-300)] bg-gradient-to-br from-[#effdf6] via-[#e6f4f1] to-white shadow-[0_14px_36px_-14px_rgba(13,148,136,0.4)] ring-2 ring-[color:var(--color-brand-200)]/70"
-                      : `border-[color:var(--color-ink-100)] bg-gradient-to-br ${t.tone} hover:border-[color:var(--color-ink-300)] hover:-translate-y-0.5 hover:shadow-md`,
+                      ? "border-[color:var(--color-brand-300)] bg-gradient-to-br from-[#effdf6] via-[#e6f4f1] to-white shadow-[0_14px_36px_-14px_rgba(13,148,136,0.4)] ring-2 ring-[color:var(--color-brand-200)]/70 dark:bg-none dark:bg-[color:var(--color-surface-2)] dark:border-[color:var(--color-brand-400)]/50 dark:ring-[color:var(--color-brand-400)]/30"
+                      : `border-[color:var(--color-ink-100)] bg-gradient-to-br ${t.tone} hover:border-[color:var(--color-ink-300)] hover:-translate-y-0.5 hover:shadow-md dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10 dark:hover:border-white/20`,
                   )}
                 >
                   <div className="flex items-center gap-2.5">
@@ -193,7 +193,7 @@ export function CampaignsView({ audience }: { audience: CampaignAudience }) {
                 {"{{sede}}"}
               </code>
             </p>
-            <div className="rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-[color:var(--color-surface-2)] to-white p-5">
+            <div className="rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-[color:var(--color-surface-2)] to-white p-5 dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10">
               <p className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
                 Vista previa · WhatsApp
               </p>
@@ -229,7 +229,7 @@ export function CampaignsView({ audience }: { audience: CampaignAudience }) {
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden border-white/70 bg-gradient-to-br from-[#effdf6] via-[#e6f4f1] to-[#f5f3ff]">
+        <Card className="relative overflow-hidden border-white/70 bg-gradient-to-br from-[#effdf6] via-[#e6f4f1] to-[#f5f3ff] dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10">
           <span
             aria-hidden
             className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-60 blur-3xl"
@@ -264,7 +264,7 @@ export function CampaignsView({ audience }: { audience: CampaignAudience }) {
               value={`${formatNumber(convLow)} – ${formatNumber(convHigh)}`}
             />
 
-            <div className="mt-4 rounded-2xl border border-white/80 bg-white/90 p-4 shadow-[var(--shadow-sm)] backdrop-blur">
+            <div className="mt-4 rounded-2xl border border-white/80 bg-white/90 p-4 shadow-[var(--shadow-sm)] backdrop-blur dark:bg-[color:var(--color-surface-2)] dark:border-white/15">
               <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-coral-500)]">
                 Ingresos potenciales
               </p>

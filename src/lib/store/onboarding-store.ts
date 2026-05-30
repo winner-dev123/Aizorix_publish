@@ -41,12 +41,50 @@ export interface Service {
   description?: string;
 }
 
+/**
+ * One document uploaded by the user during onboarding step 4 ("Entrena tu
+ * IA"). The text is extracted client-side for plain-text formats (txt/md/
+ * csv/json/html/xml/log); for binary formats (pdf/docx) the file is
+ * accepted with status="pending" — the user is shown a fallback notice
+ * and can paste the key content into `additionalNotes`.
+ *
+ * Stored in-memory inside the zustand-persisted state, so refreshing the
+ * page keeps the documents around until the user activates the system.
+ * Sent to the server at activation time and concatenated into the
+ * clinic's `aiGuidance` field.
+ */
+export interface AIDocument {
+  id: string;
+  name: string;
+  /** Size in bytes — used for the human-readable label. */
+  size: number;
+  /** MIME type as reported by the browser. May be empty for some types. */
+  mime: string;
+  /** Lowercased filename extension, used to drive the icon + extraction path. */
+  ext: string;
+  /** Extraction status. */
+  status: "ready" | "pending" | "error";
+  /** Extracted plain text (only for text-based formats). */
+  text?: string;
+  /** Word count of the extracted text — purely informational. */
+  wordCount?: number;
+  /** Reason the file couldn't be processed (status="error"). */
+  error?: string;
+  /** Epoch ms — used to sort the list. */
+  addedAt: number;
+}
+
 export interface AIConfig {
   tone: "professional" | "friendly" | "casual";
   introMessage: string;
   askEmailForNew: boolean;
   pushBooking: boolean;
   language: "es" | "en";
+  /** Documents uploaded during onboarding. Used to "train" the AI. */
+  documents: AIDocument[];
+  /** Free-text notes — the AI will see this verbatim. Persisted into the
+   * clinic's aiGuidance at activation time. */
+  additionalNotes: string;
 }
 
 export interface OnboardingState {
@@ -74,6 +112,9 @@ export interface OnboardingState {
   setChannels: (c: Partial<OnboardingState["channels"]>) => void;
   setAgenda: (a: Partial<OnboardingState["agenda"]>) => void;
   setAI: (a: Partial<AIConfig>) => void;
+  addAIDocument: (doc: AIDocument) => void;
+  updateAIDocument: (id: string, patch: Partial<AIDocument>) => void;
+  removeAIDocument: (id: string) => void;
   setLeadStates: (s: string[]) => void;
   finish: () => void;
   reset: () => void;
@@ -101,6 +142,9 @@ const initial: Omit<
   | "setChannels"
   | "setAgenda"
   | "setAI"
+  | "addAIDocument"
+  | "updateAIDocument"
+  | "removeAIDocument"
   | "setLeadStates"
   | "finish"
   | "reset"
@@ -135,6 +179,8 @@ const initial: Omit<
     askEmailForNew: true,
     pushBooking: true,
     language: "es",
+    documents: [],
+    additionalNotes: "",
   },
   leadStates: DEFAULT_LEAD_STATES,
   finished: false,
@@ -160,13 +206,57 @@ export const useOnboarding = create<OnboardingState>()(
       setChannels: (c) => set({ channels: { ...get().channels, ...c } }),
       setAgenda: (a) => set({ agenda: { ...get().agenda, ...a } }),
       setAI: (a) => set({ ai: { ...get().ai, ...a } }),
+      addAIDocument: (doc) =>
+        set({ ai: { ...get().ai, documents: [...get().ai.documents, doc] } }),
+      updateAIDocument: (id, patch) =>
+        set({
+          ai: {
+            ...get().ai,
+            documents: get().ai.documents.map((d) =>
+              d.id === id ? { ...d, ...patch } : d,
+            ),
+          },
+        }),
+      removeAIDocument: (id) =>
+        set({
+          ai: {
+            ...get().ai,
+            documents: get().ai.documents.filter((d) => d.id !== id),
+          },
+        }),
       setLeadStates: (s) => set({ leadStates: s }),
       finish: () => set({ finished: true }),
       reset: () => set({ ...initial }),
     }),
     {
       name: "aizorix-onboarding",
-      version: 1,
+      // v2 introduced `ai.documents` and `ai.additionalNotes`. Older
+      // persisted state has an `ai` block without those keys, which would
+      // crash StepAI when it calls `ai.documents.some(...)`. Bumping the
+      // version + supplying a `merge` deep-merger backfills any missing
+      // nested defaults from `initial` so old browsers stay compatible.
+      version: 2,
+      // Required when `version` is bumped — zustand discards the persisted
+      // state otherwise. We simply pass it through; `merge` below fills in
+      // any new defaults that the older shape was missing.
+      migrate: (persisted) => persisted as OnboardingState,
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<OnboardingState>;
+        return {
+          ...current,
+          ...p,
+          business: { ...current.business, ...(p.business ?? {}) },
+          channels: { ...current.channels, ...(p.channels ?? {}) },
+          agenda: { ...current.agenda, ...(p.agenda ?? {}) },
+          ai: {
+            ...current.ai,
+            ...(p.ai ?? {}),
+            documents: p.ai?.documents ?? current.ai.documents,
+            additionalNotes:
+              p.ai?.additionalNotes ?? current.ai.additionalNotes,
+          },
+        };
+      },
     },
   ),
 );

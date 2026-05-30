@@ -23,7 +23,7 @@ export function StepReady() {
   return (
     <div className="flex flex-col gap-7">
       {/* Celebration banner — bright */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#effdf6] via-[#e6f4f1] to-[#f5f3ff] p-8 shadow-[var(--shadow-lg)]">
+      <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#effdf6] via-[#e6f4f1] to-[#f5f3ff] p-8 shadow-[var(--shadow-lg)] dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10">
         <span
           aria-hidden
           className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-80 blur-3xl"
@@ -84,7 +84,7 @@ export function StepReady() {
         />
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-[color:var(--color-ink-100)] bg-white p-6 shadow-[var(--shadow-sm)]">
+      <div className="overflow-hidden rounded-3xl border border-[color:var(--color-ink-100)] bg-white p-6 shadow-[var(--shadow-sm)] dark:border-white/10 dark:bg-[color:var(--color-surface-1)]">
         <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
           Módulos contratados
         </p>
@@ -104,7 +104,7 @@ export function StepReady() {
             </li>
           ))}
         </ul>
-        <div className="mt-5 flex items-center justify-between rounded-2xl bg-gradient-to-br from-[color:var(--color-brand-50)] to-white px-5 py-4 ring-1 ring-[color:var(--color-brand-200)]/50">
+        <div className="mt-5 flex items-center justify-between rounded-2xl bg-gradient-to-br from-[color:var(--color-brand-50)] to-white px-5 py-4 ring-1 ring-[color:var(--color-brand-200)]/50 dark:bg-none dark:bg-[color:var(--color-surface-2)] dark:ring-white/15">
           <p className="text-sm font-bold text-[color:var(--color-ink-900)]">
             Total mensual
           </p>
@@ -145,8 +145,8 @@ function Summary({
     <div
       className={`rounded-2xl border p-4 ${
         accent
-          ? "border-[color:var(--color-brand-200)]/60 bg-gradient-to-br from-[color:var(--color-brand-50)] to-white"
-          : "border-[color:var(--color-ink-100)] bg-white"
+          ? "border-[color:var(--color-brand-200)]/60 bg-gradient-to-br from-[color:var(--color-brand-50)] to-white dark:bg-none dark:bg-[color:var(--color-surface-2)] dark:border-white/15"
+          : "border-[color:var(--color-ink-100)] bg-white dark:border-white/10 dark:bg-[color:var(--color-surface-1)]"
       }`}
     >
       <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-ink-400)]">

@@ -81,7 +81,7 @@ export default async function AgendaPage() {
                   key={d.toISOString()}
                   className={`rounded-xl border p-2 text-center transition ${
                     isToday
-                      ? "border-[color:var(--color-brand-300)] bg-gradient-to-br from-[color:var(--color-brand-50)] to-white shadow-[var(--shadow-sm)]"
+                      ? "border-[color:var(--color-brand-300)] bg-gradient-to-br from-[color:var(--color-brand-50)] to-white shadow-[var(--shadow-sm)] dark:bg-none dark:bg-[color:var(--color-surface-2)] dark:border-[color:var(--color-brand-400)]/40"
                       : "border-transparent"
                   }`}
                 >
@@ -152,7 +152,7 @@ export default async function AgendaPage() {
           {upcoming.map((a) => (
             <div
               key={a.id}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-4 transition hover:-translate-y-0.5 hover:shadow-md"
+              className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-4 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10"
             >
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#a855f7] to-[#7c3aed] text-white shadow-[0_6px_14px_-6px_rgba(13,148,136,0.45)]">

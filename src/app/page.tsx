@@ -23,10 +23,14 @@ import {
 } from "lucide-react";
 import { AizorixLogo } from "@/components/brand/aizorix-logo";
 import { Button } from "@/components/ui/button";
+import { getTheme } from "@/lib/theme";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Fade } from "@/components/motion/fade";
 import { CountUp } from "@/components/motion/count-up";
 import { AiChatBubble } from "@/components/landing/ai-chat-bubble";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { getServerT } from "@/i18n/server";
 
 /**
  * Hero building image. Defaults to a high-quality Unsplash glass tower at
@@ -162,9 +166,12 @@ const logos = [
   "Norte Dental",
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const theme = await getTheme();
+  const { t } = await getServerT();
+  const L = t.landing;
   return (
-    <div className="flex flex-1 flex-col bg-white">
+    <div className="flex flex-1 flex-col bg-white dark:bg-[color:var(--color-background)]">
       {/* ─────────────── Top bar ─────────────── */}
       <header className="sticky top-0 z-50 border-b border-[color:var(--color-ink-100)]/70 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
@@ -174,40 +181,42 @@ export default function HomePage() {
               href="#features"
               className="transition hover:text-[color:var(--color-ink-900)]"
             >
-              Producto
+              {L.navProduct}
             </a>
             <a
               href="#sectors"
               className="transition hover:text-[color:var(--color-ink-900)]"
             >
-              Sectores
+              {L.navSectors}
             </a>
             <a
               href="#campaign"
               className="transition hover:text-[color:var(--color-ink-900)]"
             >
-              Campañas IA
+              {L.navCampaigns}
             </a>
             <a
               href="#testimonials"
               className="transition hover:text-[color:var(--color-ink-900)]"
             >
-              Clientes
+              {L.navClients}
             </a>
             <Link
               href="/app"
               className="transition hover:text-[color:var(--color-ink-900)]"
             >
-              Demo CRM
+              {L.navDemo}
             </Link>
           </nav>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher tone="light" align="right" />
+            <ThemeToggle current={theme} tone="light" align="right" />
             <Button asChild variant="ghost" size="sm">
-              <Link href="/app">Entrar</Link>
+              <Link href="/app">{L.signIn}</Link>
             </Button>
             <Button asChild variant="accent" size="sm">
               <Link href="/onboarding">
-                Empezar <ArrowRight />
+                {L.getStarted} <ArrowRight />
               </Link>
             </Button>
           </div>
@@ -229,16 +238,16 @@ export default function HomePage() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--color-brand-400)] opacity-60" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--color-brand-600)]" />
                 </span>
-                Novedad · ROI previsto antes de enviar
+                {L.heroBadge}
                 <ChevronRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
               </Link>
 
               <h1 className="mt-7 text-[2.7rem] font-black leading-[1.04] tracking-[-0.02em] text-[color:var(--color-ink-900)] sm:text-6xl lg:text-[4.25rem]">
-                Una plataforma
+                {L.heroTitleA}
                 <br />
-                para cada negocio.{" "}
+                {L.heroTitleB}{" "}
                 <span className="relative inline-block">
-                  <span className="text-brand-gradient">Resultados</span>
+                  <span className="text-brand-gradient">{L.heroHighlight}</span>
                   <svg
                     aria-hidden
                     viewBox="0 0 320 12"
@@ -253,25 +262,23 @@ export default function HomePage() {
                     />
                   </svg>
                 </span>{" "}
-                para todos.
+                {L.heroTitleC}
               </h1>
 
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-[color:var(--color-ink-500)]">
-                Conecta, automatiza y escala tu negocio con módulos
-                inteligentes diseñados para crecer contigo. CRM, IA
-                recepcionista, agenda y campañas en una sola plataforma.
+                {L.heroSubtitle}
               </p>
 
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <Button asChild variant="primary" size="lg">
                   <Link href="/onboarding">
                     <Sparkles className="h-5 w-5" />
-                    Explorar sectores <ArrowRight />
+                    {L.exploreSectors} <ArrowRight />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg">
                   <Link href="/app">
-                    <PlayCircle /> Ver cómo funciona
+                    <PlayCircle /> {L.seeHow}
                   </Link>
                 </Button>
               </div>
@@ -279,15 +286,15 @@ export default function HomePage() {
               <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-2 text-sm text-[color:var(--color-ink-500)]">
                 <span className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-[color:var(--color-brand-600)]" />
-                  Sin tarjeta para empezar
+                  {L.noCard}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-[color:var(--color-brand-600)]" />
-                  Onboarding en 10 minutos
+                  {L.onboarding10}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-[color:var(--color-brand-600)]" />
-                  Soporte en español
+                  {L.supportEs}
                 </span>
               </div>
 
@@ -319,7 +326,7 @@ export default function HomePage() {
                     ))}
                   </div>
                   <p className="text-xs text-[color:var(--color-ink-500)]">
-                    4.9 sobre 5 · +250 negocios automatizados con Aizorix
+                    {L.socialProof}
                   </p>
                 </div>
               </div>
@@ -380,7 +387,7 @@ export default function HomePage() {
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
                   </span>
-                  Operativo · 99,97% uptime
+                  {L.statusOperational}
                 </div>
               </div>
 
@@ -398,7 +405,7 @@ export default function HomePage() {
                 />
                 <div className="relative">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
-                    Automatizaciones activas
+                    {L.activeAutomations}
                   </p>
                   <p className="mt-1 flex items-baseline gap-1.5 text-3xl font-black tracking-tight text-[color:var(--color-ink-900)]">
                     <CountUp to={128} duration={1400} />
@@ -589,7 +596,7 @@ export default function HomePage() {
       {/* ─────────────── Features ─────────────── */}
       <section
         id="features"
-        className="relative border-b border-[color:var(--color-ink-100)] bg-white py-24"
+        className="relative border-b border-[color:var(--color-ink-100)] bg-white py-24 dark:bg-[color:var(--color-background)] dark:border-white/10"
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-2xl text-center">
@@ -611,7 +618,7 @@ export default function HomePage() {
               return (
                 <div
                   key={f.title}
-                  className={`group relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br ${t.card} p-7 shadow-[var(--shadow-sm)] ring-1 ${t.ring} card-hover`}
+                  className={`group relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br ${t.card} p-7 shadow-[var(--shadow-sm)] ring-1 ${t.ring} card-hover dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10 dark:ring-white/10`}
                 >
                   <div className="relative">
                     <div
@@ -730,13 +737,13 @@ export default function HomePage() {
                     ].map((s) => (
                       <div
                         key={s.l}
-                        className={`rounded-lg border border-[color:var(--color-ink-100)] bg-gradient-to-br ${s.c} p-2.5`}
+                        className={`rounded-lg border border-[color:var(--color-ink-100)] bg-gradient-to-br ${s.c} p-2.5 dark:bg-none dark:bg-[color:var(--color-surface-2)] dark:border-white/10`}
                       >
                         <p className="text-[9px] font-semibold uppercase tracking-wider text-[color:var(--color-ink-400)]">
                           {s.l}
                         </p>
                         <p className="mt-0.5 text-base font-black">{s.v}</p>
-                        <p className="text-[9px] font-semibold text-emerald-600">
+                        <p className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400">
                           {s.d}
                         </p>
                       </div>
@@ -780,7 +787,7 @@ export default function HomePage() {
       {/* ─────────────── Sectors ─────────────── */}
       <section
         id="sectors"
-        className="border-b border-[color:var(--color-ink-100)] bg-white py-24"
+        className="border-b border-[color:var(--color-ink-100)] bg-white py-24 dark:bg-[color:var(--color-background)] dark:border-white/10"
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-2xl text-center">
@@ -810,12 +817,12 @@ export default function HomePage() {
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className="object-cover transition duration-700 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#0a0518] dark:via-[#0a0518]/70 dark:to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-4">
-                  <p className="text-base font-bold text-[color:var(--color-ink-900)]">
+                  <p className="text-base font-bold text-[color:var(--color-ink-900)] dark:text-white">
                     {s.name}
                   </p>
-                  <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-brand-700)] shadow-sm">
+                  <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-brand-700)] shadow-sm dark:bg-[color:var(--color-surface-2)] dark:text-[color:var(--color-brand-300)] dark:ring-1 dark:ring-white/15">
                     Onboarding listo
                   </p>
                 </div>
@@ -920,7 +927,7 @@ export default function HomePage() {
                 ))}
               </dl>
 
-              <div className="mt-5 rounded-2xl bg-gradient-to-br from-[color:var(--color-brand-100)] via-[color:var(--color-sky-100)] to-white p-5 ring-1 ring-[color:var(--color-brand-200)]/60">
+              <div className="mt-5 rounded-2xl bg-gradient-to-br from-[color:var(--color-brand-100)] via-[color:var(--color-sky-100)] to-white p-5 ring-1 ring-[color:var(--color-brand-200)]/60 dark:bg-none dark:bg-[color:var(--color-surface-2)] dark:ring-white/15">
                 <p className="text-xs uppercase tracking-wider text-[color:var(--color-brand-700)]">
                   Ingresos potenciales
                 </p>
@@ -943,7 +950,7 @@ export default function HomePage() {
       {/* ─────────────── Testimonials ─────────────── */}
       <section
         id="testimonials"
-        className="border-b border-[color:var(--color-ink-100)] bg-white py-24"
+        className="border-b border-[color:var(--color-ink-100)] bg-white py-24 dark:bg-[color:var(--color-background)] dark:border-white/10"
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-2xl text-center">
@@ -962,7 +969,7 @@ export default function HomePage() {
               return (
                 <figure
                   key={t.name}
-                  className={`relative flex flex-col overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-b ${ts.card} p-7 shadow-[var(--shadow-sm)] ring-1 ${ts.ring} card-hover anim-fade-up`}
+                  className={`relative flex flex-col overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-b ${ts.card} p-7 shadow-[var(--shadow-sm)] ring-1 ${ts.ring} card-hover anim-fade-up dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10 dark:ring-white/10`}
                   style={{ animationDelay: `${i * 80}ms` }}
                 >
                   <div className="flex items-center gap-0.5 text-[color:var(--color-brand-500)]">
