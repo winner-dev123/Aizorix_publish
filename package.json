@@ -21,6 +21,7 @@
     "create:clinic": "tsx scripts/create-clinic.ts",
     "api:mint-token": "tsx scripts/mint-api-token.ts",
     "admin:create": "tsx scripts/create-platform-admin.ts",
+    "demo:seed": "tsx scripts/seed-demo-data.ts",
     "postinstall": "prisma generate || true"
   },
   "prisma": {
