@@ -155,7 +155,39 @@ export const es = {
     // Step labels — match `slug` in onboarding-steps.ts.
     // Each step has `label` (the big title), `short` (the timeline label),
     // `highlight` (the violet keyword inside `label`) and `description`.
+    crmMode: {
+      subtitle:
+        "Aizorix se adapta a cómo trabajas hoy. Elige una opción — siempre puedes cambiar más adelante.",
+      recommendedBadge: "Recomendado",
+      flexibilityNote:
+        "Esta decisión no es definitiva. Puedes cambiar de modo en cualquier momento desde Configuración › Módulos.",
+      aizorixTitle: "Usar Aizorix CRM",
+      aizorixDesc:
+        "Aizorix se convierte en tu sistema principal de gestión de clientes.",
+      aizorixBullet1: "CRM visual, pipeline, agenda y métricas incluidos.",
+      aizorixBullet2: "Importa tus datos por CSV en cualquier momento.",
+      aizorixBullet3: "Configuración en menos de 10 minutos.",
+      externalTitle: "Conectar mi CRM",
+      externalDesc:
+        "Mantén tu CRM actual; Aizorix sincroniza datos vía API.",
+      externalBullet1: "Genera un token API tras la activación.",
+      externalBullet2: "Conecta HubSpot, Pipedrive, Zoho o el tuyo.",
+      externalBullet3: "Nada se mueve hasta que tú lo decides.",
+      noneTitle: "Empezar sin CRM",
+      noneDesc:
+        "Solo IA + WhatsApp + agenda. Activa el CRM cuando lo necesites.",
+      noneBullet1: "Mínima configuración inicial.",
+      noneBullet2: "Ideal para probar la IA antes de migrar datos.",
+      noneBullet3: "Activa módulos uno a uno desde Configuración.",
+    },
     steps: {
+      modo: {
+        label: "Elige tu modo",
+        short: "Modo",
+        highlight: "modo",
+        description:
+          "¿Cómo quieres trabajar con Aizorix? Puedes usar nuestro CRM, conectar el tuyo o empezar sin CRM y activarlo más tarde.",
+      },
       negocio: {
         label: "Tu negocio",
         short: "Tu negocio",

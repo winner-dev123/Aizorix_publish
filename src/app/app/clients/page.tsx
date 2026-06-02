@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ChevronLeft, ChevronRight, Plus, Search, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Search, Upload, Users } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -79,11 +79,18 @@ export default async function ClientsPage({
           </span>
         </form>
 
-        <Button asChild variant="primary" size="sm">
-          <Link href="/app/clients/new">
-            <Plus /> Nuevo cliente
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/app/clients/import">
+              <Upload /> Importar CSV
+            </Link>
+          </Button>
+          <Button asChild variant="primary" size="sm">
+            <Link href="/app/clients/new">
+              <Plus /> Nuevo cliente
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-[color:var(--color-ink-100)] bg-white shadow-[var(--shadow-sm)]">

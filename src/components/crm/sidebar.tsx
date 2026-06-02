@@ -210,7 +210,7 @@ export function CrmSidebar({
 
         <div className="relative flex h-16 items-center justify-between px-5">
           <Link href="/app" className="transition hover:opacity-90" onClick={() => setOpen(false)}>
-            <AizorixLogo />
+            <AizorixLogo tone="dark" />
           </Link>
           {/* Close button — mobile only. */}
           <button

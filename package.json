@@ -19,6 +19,8 @@
     "db:studio": "prisma studio",
     "db:ids": "tsx scripts/print-ids.ts",
     "create:clinic": "tsx scripts/create-clinic.ts",
+    "api:mint-token": "tsx scripts/mint-api-token.ts",
+    "admin:create": "tsx scripts/create-platform-admin.ts",
     "postinstall": "prisma generate || true"
   },
   "prisma": {

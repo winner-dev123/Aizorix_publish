@@ -138,7 +138,39 @@ export const de: Dictionary = {
         "Deine KI wird automatisch mit deinen Leistungen, Zeiten und Preisen trainiert. Du kannst das Verhalten unter Einstellungen › KI im CRM feinjustieren.",
     },
 
+    crmMode: {
+      subtitle:
+        "Aizorix passt sich an deine Arbeitsweise an. Wähle — du kannst jederzeit wechseln.",
+      recommendedBadge: "Empfohlen",
+      flexibilityNote:
+        "Diese Wahl ist nicht endgültig. Du kannst den Modus jederzeit unter Einstellungen › Module ändern.",
+      aizorixTitle: "Aizorix CRM nutzen",
+      aizorixDesc:
+        "Aizorix wird dein zentrales Kundenmanagement-System.",
+      aizorixBullet1: "Visuelles CRM, Pipeline, Kalender und Kennzahlen inklusive.",
+      aizorixBullet2: "Importiere deine Daten jederzeit per CSV.",
+      aizorixBullet3: "Einrichtung in unter 10 Minuten.",
+      externalTitle: "Mein CRM verbinden",
+      externalDesc:
+        "Behalte dein aktuelles CRM; Aizorix synchronisiert via API.",
+      externalBullet1: "Erzeuge nach der Aktivierung einen API-Token.",
+      externalBullet2: "Verbinde HubSpot, Pipedrive, Zoho oder dein eigenes.",
+      externalBullet3: "Nichts bewegt sich, bis du es entscheidest.",
+      noneTitle: "Ohne CRM starten",
+      noneDesc:
+        "Nur KI + WhatsApp + Kalender. CRM später aktivieren.",
+      noneBullet1: "Minimale Anfangs­konfiguration.",
+      noneBullet2: "Ideal, um die KI vor der Migration zu testen.",
+      noneBullet3: "Module einzeln in den Einstellungen aktivieren.",
+    },
     steps: {
+      modo: {
+        label: "Wähle deinen Modus",
+        short: "Modus",
+        highlight: "Modus",
+        description:
+          "Wie möchtest du mit Aizorix arbeiten? Nutze unser CRM, verbinde dein eigenes oder beginne ohne CRM und aktiviere es später.",
+      },
       negocio: {
         label: "Dein Unternehmen",
         short: "Dein Unternehmen",

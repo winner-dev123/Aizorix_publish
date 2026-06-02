@@ -138,7 +138,39 @@ export const pt: Dictionary = {
         "A sua IA será treinada automaticamente com os seus serviços, horários e preços. Pode ajustar o comportamento em Definições › IA do CRM.",
     },
 
+    crmMode: {
+      subtitle:
+        "A Aizorix adapta-se à sua forma de trabalhar. Escolha — pode mudar mais tarde.",
+      recommendedBadge: "Recomendado",
+      flexibilityNote:
+        "Esta escolha não é definitiva. Pode mudar de modo a qualquer momento em Definições › Módulos.",
+      aizorixTitle: "Usar Aizorix CRM",
+      aizorixDesc:
+        "A Aizorix passa a ser o seu sistema principal de gestão de clientes.",
+      aizorixBullet1: "CRM visual, pipeline, agenda e métricas incluídos.",
+      aizorixBullet2: "Importe os seus dados via CSV a qualquer altura.",
+      aizorixBullet3: "Configuração em menos de 10 minutos.",
+      externalTitle: "Ligar o meu CRM",
+      externalDesc:
+        "Mantenha o seu CRM atual; a Aizorix sincroniza via API.",
+      externalBullet1: "Gere um token API após a ativação.",
+      externalBullet2: "Ligue HubSpot, Pipedrive, Zoho ou o seu.",
+      externalBullet3: "Nada se move até decidir.",
+      noneTitle: "Começar sem CRM",
+      noneDesc:
+        "Apenas IA + WhatsApp + agenda. Ative o CRM mais tarde.",
+      noneBullet1: "Configuração inicial mínima.",
+      noneBullet2: "Ideal para testar a IA antes de migrar.",
+      noneBullet3: "Ative módulos um a um nas Definições.",
+    },
     steps: {
+      modo: {
+        label: "Escolha o seu modo",
+        short: "Modo",
+        highlight: "modo",
+        description:
+          "Como quer trabalhar com a Aizorix? Use o nosso CRM, ligue o seu ou comece sem CRM e ative-o mais tarde.",
+      },
       negocio: {
         label: "O seu negócio",
         short: "O seu negócio",

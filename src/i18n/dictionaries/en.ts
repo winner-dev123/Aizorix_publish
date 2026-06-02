@@ -138,7 +138,39 @@ export const en: Dictionary = {
         "Your AI will be trained automatically with your services, hours and prices. You can fine-tune behavior under Settings › AI in the CRM.",
     },
 
+    crmMode: {
+      subtitle:
+        "Aizorix adapts to how you work today. Pick one — you can always switch later.",
+      recommendedBadge: "Recommended",
+      flexibilityNote:
+        "This choice isn't final. You can switch modes anytime from Settings › Modules.",
+      aizorixTitle: "Use Aizorix CRM",
+      aizorixDesc:
+        "Aizorix becomes your main customer-management system.",
+      aizorixBullet1: "Visual CRM, pipeline, calendar and metrics included.",
+      aizorixBullet2: "Import your data via CSV anytime.",
+      aizorixBullet3: "Setup in under 10 minutes.",
+      externalTitle: "Connect my CRM",
+      externalDesc:
+        "Keep your current CRM; Aizorix syncs data via API.",
+      externalBullet1: "Mint an API token after activation.",
+      externalBullet2: "Connect HubSpot, Pipedrive, Zoho or your own.",
+      externalBullet3: "Nothing moves until you decide.",
+      noneTitle: "Start without CRM",
+      noneDesc:
+        "Only AI + WhatsApp + calendar. Enable the CRM later if you need it.",
+      noneBullet1: "Minimal initial configuration.",
+      noneBullet2: "Ideal to try the AI before migrating data.",
+      noneBullet3: "Toggle modules one by one from Settings.",
+    },
     steps: {
+      modo: {
+        label: "Pick your mode",
+        short: "Mode",
+        highlight: "mode",
+        description:
+          "How do you want to work with Aizorix? Use our CRM, connect yours, or start without a CRM and turn it on later.",
+      },
       negocio: {
         label: "Your business",
         short: "Your business",

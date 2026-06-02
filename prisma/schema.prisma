@@ -158,6 +158,7 @@ model Clinic {
   whatsapp            WhatsAppIntegration?
   aiMemories          AiMemory[]
   auditLogs           AuditLog[]
+  apiTokens           ApiToken[]
 }
 
 model User {
@@ -178,6 +179,7 @@ model User {
   accounts Account[]
   sessions Session[]
   auditLogs AuditLog[]
+  apiTokensCreated ApiToken[]
 
   @@unique([clinicId, email])
   @@index([clinicId])
@@ -499,6 +501,63 @@ model AuditLog {
 
   @@index([clinicId, createdAt])
   @@index([clinicId, action, createdAt])
+}
+
+// ============================================================
+//  Public REST API — token-based auth for external integrations
+//  (CRM connectors, mobile apps, partner systems).
+//
+//  Tokens are SHA-256 hashed at rest; the raw token is shown ONCE
+//  at creation and never recoverable. The `prefix` field stores
+//  the first 12 chars of the raw token so the UI can display it
+//  as "azx_live_a1b2c3d4…" to identify which token is which.
+// ============================================================
+
+model ApiToken {
+  id        String   @id @default(cuid())
+  clinicId  String
+  /// Hex-encoded SHA-256 of the raw token. Lookups go through this column.
+  tokenHash String   @unique
+  /// First 12 chars of the raw token (e.g. "azx_live_a1b") — safe to show.
+  prefix    String
+  /// Human-friendly label set by the user: "HubSpot prod", "Mobile app", …
+  name      String
+  /// Future-proofs scoping. v1 ships with "full"; later: "patients:read", etc.
+  scopes    String[] @default(["full"])
+  /// NULL = no expiry. When set, the auth middleware rejects past this date.
+  expiresAt DateTime?
+  /// Updated every time the token is used. Useful for "unused tokens" cleanup.
+  lastUsedAt DateTime?
+  /// SetNull on user deletion so the audit trail of who created the token survives.
+  createdByUserId String?
+  createdAt DateTime @default(now())
+
+  clinic     Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  createdBy  User?  @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([clinicId, createdAt])
+}
+
+// ============================================================
+//  Platform admin — cross-tenant operators (Aizorix staff, not
+//  clinic staff). Has its own table, its own auth flow, and its
+//  own session cookie so a compromised clinic-user session can't
+//  ever escalate, and vice versa.
+//
+//  Bootstrap: `npm run admin:create` (CLI; no signup UI).
+// ============================================================
+
+model PlatformAdmin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  /// scrypt-derived hash, formatted as `<salt-hex>:<derived-hex>`.
+  passwordHash String
+  name         String?
+  active       Boolean  @default(true)
+  /// Updated on every successful sign-in. Useful to spot dormant accounts.
+  lastSignInAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 // ============================================================

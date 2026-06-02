@@ -87,8 +87,24 @@ export interface AIConfig {
   additionalNotes: string;
 }
 
+/**
+ * How the clinic wants to operate Aizorix relative to their existing
+ * tooling — picked in step 1 of the onboarding flow (see
+ * `step-crm-mode.tsx`):
+ *
+ *   aizorix  → use the full Aizorix CRM (default)
+ *   external → keep current CRM; push data via /api/v1/* with a token
+ *   none     → IA + WhatsApp + agenda only; CRM module disabled
+ *
+ * Later steps branch on this (step-ai shows API token UX when external,
+ * step-ready shows the right "what got created" recap) and at
+ * activation it determines the clinic's `activeModules` array.
+ */
+export type CrmMode = "aizorix" | "external" | "none";
+
 export interface OnboardingState {
   step: number;
+  crmMode: CrmMode;
   sectorId: string | null;
   business: BusinessInfo;
   locations: Location[];
@@ -102,6 +118,7 @@ export interface OnboardingState {
   finished: boolean;
 
   setStep: (n: number) => void;
+  setCrmMode: (m: CrmMode) => void;
   setSector: (id: string) => void;
   setBusiness: (b: Partial<BusinessInfo>) => void;
   setLocations: (l: Location[]) => void;
@@ -132,6 +149,7 @@ const DEFAULT_LEAD_STATES = [
 const initial: Omit<
   OnboardingState,
   | "setStep"
+  | "setCrmMode"
   | "setSector"
   | "setBusiness"
   | "setLocations"
@@ -150,6 +168,7 @@ const initial: Omit<
   | "reset"
 > = {
   step: 1,
+  crmMode: "aizorix",
   sectorId: null,
   business: {
     name: "",
@@ -191,6 +210,7 @@ export const useOnboarding = create<OnboardingState>()(
     (set, get) => ({
       ...initial,
       setStep: (n) => set({ step: n }),
+      setCrmMode: (m) => set({ crmMode: m }),
       setSector: (id) => set({ sectorId: id }),
       setBusiness: (b) => set({ business: { ...get().business, ...b } }),
       setLocations: (l) => set({ locations: l }),
@@ -235,16 +255,17 @@ export const useOnboarding = create<OnboardingState>()(
       // crash StepAI when it calls `ai.documents.some(...)`. Bumping the
       // version + supplying a `merge` deep-merger backfills any missing
       // nested defaults from `initial` so old browsers stay compatible.
-      version: 2,
-      // Required when `version` is bumped — zustand discards the persisted
-      // state otherwise. We simply pass it through; `merge` below fills in
-      // any new defaults that the older shape was missing.
+      // v3 introduced `crmMode`. Older state didn't have it; the `merge`
+      // below backfills it from `initial`. Bumping the version forces
+      // zustand to run the `migrate` hook on rehydration.
+      version: 3,
       migrate: (persisted) => persisted as OnboardingState,
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<OnboardingState>;
         return {
           ...current,
           ...p,
+          crmMode: p.crmMode ?? current.crmMode,
           business: { ...current.business, ...(p.business ?? {}) },
           channels: { ...current.channels, ...(p.channels ?? {}) },
           agenda: { ...current.agenda, ...(p.agenda ?? {}) },

@@ -8,6 +8,7 @@ import { getServerT } from "@/i18n/server";
 import { StepProgress } from "@/components/onboarding/step-progress";
 import { StepHeader } from "@/components/onboarding/step-header";
 
+import { StepCrmMode } from "@/components/onboarding/steps/step-crm-mode";
 import { StepBusiness } from "@/components/onboarding/steps/step-business";
 import { StepServices } from "@/components/onboarding/steps/step-services";
 import { StepChannels } from "@/components/onboarding/steps/step-channels";
@@ -36,6 +37,7 @@ function StepServicesAndAgenda() {
 }
 
 const STEP_COMPONENTS: Record<string, React.ComponentType> = {
+  modo: StepCrmMode,
   negocio: StepBusiness,
   "servicios-y-agenda": StepServicesAndAgenda,
   canales: StepChannels,

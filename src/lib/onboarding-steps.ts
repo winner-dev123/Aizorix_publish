@@ -26,6 +26,15 @@ export interface OnboardingStep {
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     num: 1,
+    slug: "modo",
+    label: "Elige tu modo",
+    short: "Modo",
+    highlight: "modo",
+    description:
+      "¿Cómo quieres trabajar con Aizorix? Puedes usar nuestro CRM, conectar el tuyo, o empezar sin CRM y activarlo más tarde.",
+  },
+  {
+    num: 2,
     slug: "negocio",
     label: "Tu negocio",
     short: "Tu negocio",
@@ -34,7 +43,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       "Cuéntanos quién eres: nombre, sector, ubicación, contacto, sedes y empleados. Configuraremos tu plataforma con módulos específicos para tu actividad.",
   },
   {
-    num: 2,
+    num: 3,
     slug: "servicios-y-agenda",
     label: "Servicios y agenda",
     short: "Servicios y agenda",
@@ -43,7 +52,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       "Añade tus tratamientos, precios, duración y configura tus horarios de atención (incluidos turnos partidos).",
   },
   {
-    num: 3,
+    num: 4,
     slug: "canales",
     label: "Conecta canales",
     short: "Conecta canales",
@@ -52,7 +61,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       "Conecta los canales que usarás para comunicarte con tus clientes: WhatsApp, Instagram, Facebook, formularios web y Google Calendar.",
   },
   {
-    num: 4,
+    num: 5,
     slug: "ia",
     label: "Entrena tu IA",
     short: "Entrena tu IA",
@@ -61,7 +70,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       "Sube documentos y configura cómo debe comportarse tu asistente de IA — tono, idioma e instrucciones específicas.",
   },
   {
-    num: 5,
+    num: 6,
     slug: "activar",
     label: "Activa tu sistema",
     short: "Activa tu sistema",
@@ -89,6 +98,7 @@ export function getStepBySlug(slug: string) {
  * letting callers fall back to the hardcoded step record.
  */
 const STEP_DICT_KEYS = {
+  modo: "modo",
   negocio: "negocio",
   "servicios-y-agenda": "serviciosYAgenda",
   canales: "canales",
