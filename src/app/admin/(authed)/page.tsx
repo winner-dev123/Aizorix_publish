@@ -29,13 +29,13 @@ export default async function AdminDashboardPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <header>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-brand-300)]">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-brand-600)] dark:text-[color:var(--color-brand-300)]">
           Cross-tenant
         </p>
-        <h1 className="mt-1 text-3xl font-black tracking-tight text-white">
+        <h1 className="mt-1 text-3xl font-black tracking-tight text-[color:var(--color-ink-900)]">
           Vista global de la plataforma
         </h1>
-        <p className="mt-1.5 text-sm text-white/65">
+        <p className="mt-1.5 text-sm text-[color:var(--color-ink-600)]">
           Datos agregados de todas las clínicas. Cada acción que realizas
           desde aquí queda registrada en el audit log de la clínica
           afectada.
@@ -98,13 +98,13 @@ function StatTile({
   href?: string;
 }) {
   const inner = (
-    <div className="rounded-2xl border border-white/10 bg-[color:var(--color-surface-1)] p-5 shadow-[var(--shadow-sm)] transition hover:border-[color:var(--color-brand-400)]/40">
+    <div className="rounded-2xl border border-[color:var(--color-ink-100)] dark:border-white/10 bg-[color:var(--color-surface-1)] p-5 shadow-[var(--shadow-sm)] transition hover:border-[color:var(--color-brand-400)]/40">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/55">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--color-ink-500)]">
             {label}
           </p>
-          <p className="mt-1.5 text-3xl font-black tracking-tight text-white">
+          <p className="mt-1.5 text-3xl font-black tracking-tight text-[color:var(--color-ink-900)]">
             {value.toLocaleString("es-ES")}
           </p>
         </div>
@@ -131,16 +131,16 @@ function QuickLinkCard({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-[color:var(--color-surface-1)] p-5 transition hover:-translate-y-0.5 hover:border-[color:var(--color-brand-400)]/40 hover:shadow-md"
+      className="group flex items-center gap-4 rounded-2xl border border-[color:var(--color-ink-100)] dark:border-white/10 bg-[color:var(--color-surface-1)] p-5 transition hover:-translate-y-0.5 hover:border-[color:var(--color-brand-400)]/40 hover:shadow-md"
     >
-      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.05] text-white">
+      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--color-ink-50)] dark:bg-white/[0.05] text-[color:var(--color-ink-900)]">
         <Icon className="h-5 w-5" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="font-bold text-white">{title}</p>
-        <p className="mt-0.5 text-xs text-white/60">{subtitle}</p>
+        <p className="font-bold text-[color:var(--color-ink-900)]">{title}</p>
+        <p className="mt-0.5 text-xs text-[color:var(--color-ink-500)]">{subtitle}</p>
       </div>
-      <ArrowRight className="h-4 w-4 text-white/45 transition group-hover:translate-x-0.5 group-hover:text-white" />
+      <ArrowRight className="h-4 w-4 text-[color:var(--color-ink-400)] transition group-hover:translate-x-0.5 group-hover:text-[color:var(--color-ink-900)]" />
     </Link>
   );
 }

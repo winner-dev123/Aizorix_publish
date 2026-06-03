@@ -366,7 +366,7 @@ export function AiChatBubble() {
           {/* CTA banner — pushes to onboarding */}
           <Link
             href="/onboarding"
-            className="group flex items-center justify-between gap-2 border-t border-[color:var(--color-ink-100)] bg-gradient-to-br from-[#f5f3ff] to-white px-4 py-2.5 text-[11px] font-semibold text-[#6d28d9] transition hover:from-[#ede9fe] hover:to-[#f5f3ff]"
+            className="group flex items-center justify-between gap-2 border-t border-[color:var(--color-ink-100)] bg-gradient-to-br from-[#f5f3ff] to-white px-4 py-2.5 text-[11px] font-semibold text-[#6d28d9] transition hover:from-[#ede9fe] hover:to-[#f5f3ff] dark:border-white/10 dark:bg-none dark:bg-[color:var(--color-surface-2)] dark:text-[color:var(--color-brand-300)]"
           >
             <span className="flex items-center gap-1.5">
               <Sparkles className="h-3 w-3" />

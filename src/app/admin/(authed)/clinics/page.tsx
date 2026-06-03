@@ -34,22 +34,22 @@ export default async function AdminClinicsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-5">
       <header>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-brand-300)]">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-brand-600)] dark:text-[color:var(--color-brand-300)]">
           Cross-tenant
         </p>
-        <h1 className="mt-1 text-2xl font-black tracking-tight text-white">
+        <h1 className="mt-1 text-2xl font-black tracking-tight text-[color:var(--color-ink-900)]">
           Clínicas
         </h1>
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-[color:var(--color-ink-500)]">
           {clinics.length.toLocaleString("es-ES")} clínicas registradas.
         </p>
       </header>
 
-      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[color:var(--color-surface-1)]">
+      <section className="overflow-hidden rounded-2xl border border-[color:var(--color-ink-100)] dark:border-white/10 bg-[color:var(--color-surface-1)]">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10 text-left text-[10px] font-bold uppercase tracking-wider text-white/55">
+              <tr className="border-b border-[color:var(--color-ink-100)] dark:border-white/10 text-left text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
                 <th className="px-4 py-3">Clínica</th>
                 <th className="px-4 py-3">Slug</th>
                 <th className="px-4 py-3">Plan</th>
@@ -60,26 +60,26 @@ export default async function AdminClinicsPage() {
                 <th className="px-4 py-3 text-right">Usuarios</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[color:var(--color-ink-100)] dark:divide-white/5">
               {clinics.length === 0 ? (
                 <tr>
                   <td
                     colSpan={8}
-                    className="px-4 py-12 text-center text-sm text-white/55"
+                    className="px-4 py-12 text-center text-sm text-[color:var(--color-ink-500)]"
                   >
-                    <Building2 className="mx-auto mb-2 h-6 w-6 text-white/30" />
+                    <Building2 className="mx-auto mb-2 h-6 w-6 text-[color:var(--color-ink-300)]" />
                     Aún no hay clínicas registradas.
                   </td>
                 </tr>
               ) : (
                 clinics.map((c) => (
-                  <tr key={c.id} className="text-white/80">
-                    <td className="px-4 py-3 font-semibold text-white">
+                  <tr key={c.id} className="text-[color:var(--color-ink-700)]">
+                    <td className="px-4 py-3 font-semibold text-[color:var(--color-ink-900)]">
                       {c.name}
                     </td>
                     <td className="px-4 py-3 font-mono text-xs">{c.slug}</td>
                     <td className="px-4 py-3 text-xs">
-                      <span className="rounded-full bg-[color:var(--color-brand-500)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-brand-300)]">
+                      <span className="rounded-full bg-[color:var(--color-brand-500)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-brand-600)] dark:text-[color:var(--color-brand-300)]">
                         {c.plan}
                       </span>
                     </td>

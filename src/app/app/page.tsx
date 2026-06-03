@@ -141,7 +141,7 @@ export default async function CrmDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-2.5">
             {data.nextAppointments.length === 0 && (
-              <p className="rounded-2xl border border-dashed border-[color:var(--color-ink-200)] bg-white/40 p-6 text-center text-sm text-[color:var(--color-ink-500)]">
+              <p className="rounded-2xl border border-dashed border-[color:var(--color-ink-200)] bg-white/40 p-6 text-center text-sm text-[color:var(--color-ink-500)] dark:border-white/10 dark:bg-white/[0.02]">
                 No hay citas futuras todavía.
               </p>
             )}
@@ -154,7 +154,7 @@ export default async function CrmDashboardPage() {
                 <Link
                   key={a.id}
                   href="/app/agenda"
-                  className="group flex items-center gap-4 rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-3.5 transition-all hover:-translate-y-0.5 hover:border-[color:var(--color-ink-200)] hover:shadow-md"
+                  className="group flex items-center gap-4 rounded-2xl border border-[color:var(--color-ink-100)] bg-gradient-to-br from-white to-[color:var(--color-surface-1)] p-3.5 transition-all hover:-translate-y-0.5 hover:border-[color:var(--color-ink-200)] hover:shadow-md dark:bg-none dark:bg-[color:var(--color-surface-1)] dark:border-white/10 dark:hover:border-white/20"
                 >
                   <div className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#a855f7] to-[#7c3aed] text-white shadow-[var(--shadow-sm)]">
                     <span className="text-[9px] font-bold uppercase tracking-wider opacity-80">

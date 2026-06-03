@@ -66,13 +66,13 @@ export default async function AdminPatientsPage({
     <div className="mx-auto max-w-6xl space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-brand-300)]">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-brand-600)] dark:text-[color:var(--color-brand-300)]">
             Cross-tenant
           </p>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-white">
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-[color:var(--color-ink-900)]">
             Pacientes
           </h1>
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-[color:var(--color-ink-500)]">
             {total.toLocaleString("es-ES")} en total · página {page} de{" "}
             {totalPages}
           </p>
@@ -80,10 +80,10 @@ export default async function AdminPatientsPage({
 
         <form
           action="/admin/patients"
-          className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[color:var(--color-surface-1)] p-2"
+          className="flex items-center gap-2 rounded-2xl border border-[color:var(--color-ink-100)] dark:border-white/10 bg-[color:var(--color-surface-1)] p-2"
         >
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--color-ink-400)]" />
             <Input
               name="q"
               defaultValue={term}
@@ -97,11 +97,11 @@ export default async function AdminPatientsPage({
         </form>
       </header>
 
-      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[color:var(--color-surface-1)]">
+      <section className="overflow-hidden rounded-2xl border border-[color:var(--color-ink-100)] dark:border-white/10 bg-[color:var(--color-surface-1)]">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10 text-left text-[10px] font-bold uppercase tracking-wider text-white/55">
+              <tr className="border-b border-[color:var(--color-ink-100)] dark:border-white/10 text-left text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-ink-500)]">
                 <th className="px-4 py-3">Paciente</th>
                 <th className="px-4 py-3">Teléfono</th>
                 <th className="px-4 py-3">Email</th>
@@ -111,14 +111,14 @@ export default async function AdminPatientsPage({
                 <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[color:var(--color-ink-100)] dark:divide-white/5">
               {patients.length === 0 ? (
                 <tr>
                   <td
                     colSpan={7}
-                    className="px-4 py-12 text-center text-sm text-white/55"
+                    className="px-4 py-12 text-center text-sm text-[color:var(--color-ink-500)]"
                   >
-                    <Users className="mx-auto mb-2 h-6 w-6 text-white/30" />
+                    <Users className="mx-auto mb-2 h-6 w-6 text-[color:var(--color-ink-300)]" />
                     {term
                       ? `Sin resultados para "${term}".`
                       : "No hay pacientes en la plataforma."}
@@ -130,9 +130,9 @@ export default async function AdminPatientsPage({
                   return (
                     <tr
                       key={p.id}
-                      className="text-white/80 transition hover:bg-white/[0.02]"
+                      className="text-[color:var(--color-ink-700)] transition hover:bg-[color:var(--color-ink-50)] dark:hover:bg-white/[0.02]"
                     >
-                      <td className="px-4 py-3 font-semibold text-white">
+                      <td className="px-4 py-3 font-semibold text-[color:var(--color-ink-900)]">
                         {name}
                       </td>
                       <td className="px-4 py-3 font-mono text-xs">
@@ -142,7 +142,7 @@ export default async function AdminPatientsPage({
                         {p.email ?? "—"}
                       </td>
                       <td className="px-4 py-3 text-xs">
-                        <span className="rounded-md bg-white/[0.06] px-1.5 py-0.5 font-semibold">
+                        <span className="rounded-md bg-[color:var(--color-ink-100)] dark:bg-white/[0.06] px-1.5 py-0.5 font-semibold">
                           {p.clinic.name}
                         </span>
                       </td>
@@ -173,9 +173,9 @@ export default async function AdminPatientsPage({
 
 function StatusPill({ status }: { status: "LEAD" | "ACTIVE" | "INACTIVE" }) {
   const styles = {
-    ACTIVE: "bg-emerald-500/15 text-emerald-300",
-    LEAD: "bg-violet-500/15 text-violet-300",
-    INACTIVE: "bg-white/10 text-white/55",
+    ACTIVE: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+    LEAD: "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300",
+    INACTIVE: "bg-[color:var(--color-ink-100)] text-[color:var(--color-ink-500)] dark:bg-white/10",
   }[status];
   const label = {
     ACTIVE: "Activo",
@@ -208,11 +208,11 @@ function Pagination({
     return sp.size > 0 ? `/admin/patients?${sp.toString()}` : "/admin/patients";
   };
   return (
-    <div className="flex items-center justify-center gap-2 text-xs text-white/65">
+    <div className="flex items-center justify-center gap-2 text-xs text-[color:var(--color-ink-600)]">
       {page > 1 && (
         <Link
           href={href(page - 1)}
-          className="rounded-lg border border-white/10 px-3 py-1.5 font-semibold hover:border-white/30 hover:text-white"
+          className="rounded-lg border border-[color:var(--color-ink-100)] dark:border-white/10 px-3 py-1.5 font-semibold hover:border-[color:var(--color-ink-300)] hover:text-[color:var(--color-ink-900)] dark:hover:border-white/30 dark:hover:text-white"
         >
           ← Anterior
         </Link>
@@ -223,7 +223,7 @@ function Pagination({
       {page < totalPages && (
         <Link
           href={href(page + 1)}
-          className="rounded-lg border border-white/10 px-3 py-1.5 font-semibold hover:border-white/30 hover:text-white"
+          className="rounded-lg border border-[color:var(--color-ink-100)] dark:border-white/10 px-3 py-1.5 font-semibold hover:border-[color:var(--color-ink-300)] hover:text-[color:var(--color-ink-900)] dark:hover:border-white/30 dark:hover:text-white"
         >
           Siguiente →
         </Link>

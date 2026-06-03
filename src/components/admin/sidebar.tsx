@@ -9,10 +9,15 @@ import {
   Users,
 } from "lucide-react";
 import { signOutPlatformAdminAction } from "@/server/actions/admin";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import type { Theme } from "@/lib/theme";
 
 interface AdminSidebarProps {
   adminEmail: string;
   adminName: string | null;
+  /** Current theme cookie value — server-rendered so the toggle hydrates
+   *  with the correct initial selection. */
+  theme: Theme;
 }
 
 const NAV = [
@@ -28,9 +33,23 @@ const NAV = [
  * accidentally hitting an admin route. The sign-out form posts to a
  * server action that clears the dedicated admin cookie.
  */
-export function AdminSidebar({ adminEmail, adminName }: AdminSidebarProps) {
+export function AdminSidebar({ adminEmail, adminName, theme }: AdminSidebarProps) {
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-white/5 bg-gradient-to-b from-[#0c0822] via-[#150e36] to-[#080518] text-white">
+    /**
+     * The sidebar is intentionally always-dark in BOTH themes — matches
+     * the clinic-app sidebar pattern (`src/components/crm/sidebar.tsx`).
+     * Only the main content area switches with the user's theme cookie.
+     *
+     * `data-theme="dark"` on the aside means `text-white`, `border-white/X`,
+     * etc. inside it resolve to their dark-mode CSS-variable values even
+     * when the surrounding shell is in light mode — without this, the
+     * sidebar's CSS variables would still inherit the light-mode tokens
+     * from the outer html, breaking the global "no white on dark" rules.
+     */
+    <aside
+      data-theme="dark"
+      className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-white/5 bg-gradient-to-b from-[#0c0822] via-[#150e36] to-[#080518] text-white"
+    >
       <span
         aria-hidden
         className="pointer-events-none absolute -left-12 -top-12 h-48 w-48 rounded-full opacity-40 blur-3xl"
@@ -81,14 +100,24 @@ export function AdminSidebar({ adminEmail, adminName }: AdminSidebarProps) {
         </div>
       </nav>
 
-      <div className="relative m-3 mt-0 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+      <div className="relative m-3 mt-0 space-y-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
         <p className="truncate text-xs font-bold text-white">
           {adminName ?? adminEmail}
         </p>
         {adminName && (
           <p className="truncate text-[10px] text-white/55">{adminEmail}</p>
         )}
-        <form action={signOutPlatformAdminAction} className="mt-2">
+
+        {/* Theme toggle — switches the MAIN content area only; the sidebar
+            stays dark (it's the operator chrome, not the surface being read). */}
+        <div className="flex items-center justify-between gap-2 border-t border-white/10 pt-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-white/55">
+            Tema
+          </span>
+          <ThemeToggle current={theme} tone="dark" align="right" />
+        </div>
+
+        <form action={signOutPlatformAdminAction}>
           <button
             type="submit"
             className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/80 transition hover:border-white/20 hover:text-white"

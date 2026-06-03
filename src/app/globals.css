@@ -257,7 +257,8 @@
 [data-theme="dark"] :is(
   .hover\:bg-white:hover,
   .hover\:bg-white\/80:hover,
-  .hover\:bg-white\/90:hover
+  .hover\:bg-white\/90:hover,
+  .focus\:bg-white:focus
 ) {
   background-color: var(--color-surface-2) !important;
 }

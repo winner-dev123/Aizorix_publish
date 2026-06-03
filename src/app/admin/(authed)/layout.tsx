@@ -1,5 +1,6 @@
 import { requirePlatformAdmin } from "@/server/admin/auth";
 import { AdminSidebar } from "@/components/admin/sidebar";
+import { getTheme } from "@/lib/theme";
 
 /**
  * Gated shell for every authenticated platform-admin route.
@@ -19,9 +20,19 @@ export default async function AdminAuthedLayout({
   children: React.ReactNode;
 }) {
   const admin = await requirePlatformAdmin();
+  const theme = await getTheme();
   return (
-    <div className="flex min-h-screen bg-[color:var(--color-background)] text-white">
-      <AdminSidebar adminEmail={admin.email} adminName={admin.name} />
+    /**
+     * The shell follows the user's global theme cookie. The sidebar
+     * stays dark in both modes (matches clinic-app convention); only
+     * the main content + canvas swap colors.
+     */
+    <div className="flex min-h-screen bg-[color:var(--color-background)] text-[color:var(--color-foreground)]">
+      <AdminSidebar
+        adminEmail={admin.email}
+        adminName={admin.name}
+        theme={theme}
+      />
       <main className="flex-1 overflow-x-hidden px-6 py-8 md:px-10">
         {children}
       </main>
